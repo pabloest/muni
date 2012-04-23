@@ -202,14 +202,18 @@ void serialEvent() {
        int predictionValueIndexStart = tempRow.indexOf("minutes");
        int predictionValueIndexEnd = tempRow.indexOf("isDeparture");
        String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);
-       Serial.println("Prediction: ");
+       Serial.print("Prediction: ");
        Serial.println(PredictionValue);
      }
      
      if (tempRow.startsWith("  <direction", 0)) {
-       Serial.println("Direction: "); 
-       Serial.println(tempRow); /*
+       Serial.print("Direction: ");
+//       Serial.println(tempRow);
        int directionTitleIndexStart = tempRow.indexOf("title");
+       int directionTitleIndexEnd = tempRow.indexOf(">");
+       String directionTitle = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);
+       Serial.println(directionTitle);
+       /*
        String route_direction = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexStart + 15);
        N.route_direction = route_direction.substring(0,2); */
      }

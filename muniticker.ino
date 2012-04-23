@@ -84,6 +84,9 @@ char tagStr[MAX_STRING_LEN] = "";
 //char dataStr[][MAX_STRING_LEN] = { "" };
 char* dataStr = { "" };
 char tmpStr[MAX_STRING_LEN] = "";
+
+String tempRow;
+
 //char endTag[3] = {'<', '/', '\0'};
 char endTag[3] = {'/', '>', '\0'};
 char LF=10;
@@ -157,9 +160,6 @@ void loop()
     client.stop();
     for(;;);
   }
-//  delay(1000);
-//  Serial.print("Route: "); Serial.print(N.route); 
-//  Serial.println(N.route_direction);
 }
 
 void connect_to_update() {
@@ -181,16 +181,10 @@ void connect_to_update() {
 // Process each char from web
 void serialEvent() {
    char inChar = client.read();
-//   if (inChar == 10) 
-//   { 
-//     Serial.println(inChar, DEC);
-//     Serial.print("Line before: ");
-//     Serial.println(tmpStr);
-//   }
 
    if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //     dataStr[rowCounter] = *tmpStr;
-     String tempRow = tmpStr;
+     tempRow = tmpStr;
      Serial.println(tempRow);
      if (tempRow.startsWith("<predictions", 0)) {
        Serial.println("Predictions header"); 

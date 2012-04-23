@@ -204,11 +204,6 @@ void serialEvent() {
        String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);
        Serial.println("Prediction: ");
        Serial.println(PredictionValue);
-       Serial.println(tempRow); /*
-       
-       
-       
-       Serial.print("Prediction: "); Serial.println(PredictionValue);     */ 
      }
      
      if (tempRow.startsWith("  <direction", 0)) {

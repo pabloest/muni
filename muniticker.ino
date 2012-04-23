@@ -166,7 +166,7 @@ void connect_to_update() {
   Serial.println("");
   Serial.println("Connecting...");
     // if you get a connection, report back via serial:
-  if (client.connect(nextmuni, 8888)) {
+  if (client.connect(nextmuni, 80)) {
     Serial.println("Connected");
     // Make a HTTP request:
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");

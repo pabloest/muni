@@ -1,0 +1,30 @@
+HTTP/1.1 200 OK
+Date: Thu, 20 Oct 2011 05:19:35 GMT
+Server: Apache/2.2.4 (Unix) mod_ssl/2.2.4 OpenSSL/0.9.7m DAV/2 mod_jk/1.2.30
+Access-Control-Allow-Origin: *
+Content-Length: 1563
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/xml
+<?xml version="1.0" encoding="utf-8" ?> 
+<body copyright="All data copyright San Francisco Muni 2011.">
+<predictions agencyTitle="San Francisco Muni" routeTitle="N-Judah" routeTag="N" stopTitle="Duboce Ave &amp; Church St" stopTag="4448">
+index start: 0
+index end: 0
+Route Title: <predictions agencyTitle="San Francisco Muni" routeTitle="N-Judah" routeTag="N" stopTitle="Duboce Ave &amp; Church St" stopTag="4448">
+<predictions agencyTitle="San Francisco Muni" routeTitle="N-Judah" routeTag="N" stopTitle="Duboce Ave &amp; Church St" stopTag="4448">
+  <direction title="Inbound to Downtown/Caltrain">
+  <prediction epochTime="1319088086672" seconds="111" minutes="1" isDeparture="false" dirTag="N__IB1" vehicle="1421" block="9721" tripTag="4621627" />
+  <prediction epochTime="1319089889827" seconds="1914" minutes="31" isDeparture="false" affectedByLayover="true" dirTag="N__IB1" vehicle="1464" block="9723" tripTag="4621629" />
+  <prediction epochTime="1319091187977" seconds="3212" minutes="53" isDeparture="false" affectedByLayover="true" dirTag="N__IB1" vehicle="1512" block="9715" tripTag="4621630" />
+  <prediction epochTime="1319091989827" seconds="4014" minutes="66" isDeparture="false" affectedByLayover="true" dirTag="N__IB1" vehicle="1467" block="9704" tripTag="4621631" />
+  </direction>
+  <direction title="Inbound to Downtown/Caltrain (M-F)">
+  <prediction epochTime="1319090272536" seconds="2296" minutes="38" isDeparture="false" affectedByLayover="true" dirTag="N__IBJU4K" vehicle="1533" block="9725" tripTag="4621749" />
+  </direction>
+<message text="www.sfmta.com or&#10;311 for Muni info."/>
+<message text="Effective 10/15&#10;N Judah will go&#10;to Caltrain&#10;on weekends"/>
+<message text="PROOF OF PAYMENT&#10;is required when&#10;on a Muni vehicle&#10;or in a station."/>
+<message text="No Elevator at&#10;Embarcadero Sta."/>
+</predictions>
+</body>

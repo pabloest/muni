@@ -119,10 +119,7 @@ typedef struct {
 prediction F, J, K, L, M, N, six, twentytwo, seventyone;
 
 int num_predictions = 0;
-
-// Flags to differentiate XML tags from document elements (ie. data)
-boolean tagFlag = false;
-boolean dataFlag = false;
+int attempt_connect = 1;
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server 
@@ -137,7 +134,7 @@ void setup() {
   Serial.begin(9600);
   // give the Ethernet shield a second to initialize:
   delay(800);
-  connect_to_update();
+//  connect_to_update();
 }
 
 void loop()
@@ -153,6 +150,12 @@ void loop()
 // move to the next route
 //  Serial.println("OK, ready");
 //  get_update();
+  if (attempt_connect) {
+    connect_to_update();
+    delay(400);
+    attempt_connect = 0;
+  }
+  
   
   if (client.available()) {
 //    if (num_predictions < 3) {

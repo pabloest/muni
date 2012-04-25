@@ -165,12 +165,15 @@ void loop()
 
   if (!client.connected()) {
     client.stop();
+    Serial.print(N.route_direction);
+    Serial.print(": ");
+//    Serial.print(N.route_direction + ": ");
     for (int i=0; i<3;i++) {
-      Serial.print("Prediction: ");
       for (int j=0;j<2;j++) {
          Serial.print(N.in_prediction[i][j]);
       }
-      Serial.println("");
+      if (i<2) Serial.print(", ");
+//      Serial.println("");
     }
     for(;;);
   }
@@ -205,11 +208,9 @@ void serialEvent() {
      if (tempRow.startsWith("<predictions", 0)) {
        Serial.println("Predictions header"); 
        int RouteTitleIndexStart = tempRow.indexOf("routeTitle"); //This gives the name of the MUNI line
-       Serial.println(tempRow); /*
-       
-       int RouteTitleIndexEnd = tempRow.indexOf("routeTag"); //routeTag is the next tag after RouteTitle   
-       String RouteTitle = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
-       N.route = RouteTitle;
+//       int RouteTitleIndexEnd = tempRow.indexOf("routeTag"); //routeTag is the next tag after RouteTitle   
+//       N.route = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
+//       N.route = RouteTitle;
 //       Serial.print("Route Title: "); Serial.println(N.route); */
      }
      
@@ -228,12 +229,13 @@ void serialEvent() {
      }
      
      if (tempRow.startsWith("  <direction", 0)) {
-       Serial.print("Direction: ");
-//       Serial.println(tempRow);
-       int directionTitleIndexStart = tempRow.indexOf("title");
-       int directionTitleIndexEnd = tempRow.indexOf(">");
-       String directionTitle = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);
-       Serial.println(directionTitle);
+       if (N.route_direction.length() < 1) {
+         Serial.print("Direction: ");
+         Serial.println(tempRow);
+         int directionTitleIndexStart = tempRow.indexOf("title");
+         int directionTitleIndexEnd = tempRow.indexOf(">");
+         N.route_direction = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);
+       }
      }
      
      // Clear all Strings

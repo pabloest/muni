@@ -103,8 +103,8 @@ typedef struct {
   
   int in_stop_ID;
 //  time_t in_last_update;
-  char in_prediction_1[3];
-  char in_prediction_2[3];
+  char in_prediction[3][2];
+  int in_prediction_2[3];
   char in_prediction_3[3];
   String in_prediction_URL;
   
@@ -118,6 +118,8 @@ typedef struct {
 
 prediction F, J, K, L, M, N, six, twentytwo, seventyone;
 
+int num_predictions = 0;
+
 // Flags to differentiate XML tags from document elements (ie. data)
 boolean tagFlag = false;
 boolean dataFlag = false;
@@ -125,7 +127,7 @@ boolean dataFlag = false;
 // Initialize the Ethernet client library
 // with the IP address and port of the server 
 // that you want to connect to (port 80 is default for HTTP):
-//EthernetClient client(nextmuni, 80);
+// EthernetClient client(nextmuni, 80);
 EthernetClient client;
 
 void setup() {
@@ -151,15 +153,26 @@ void loop()
 // move to the next route
 //  Serial.println("OK, ready");
 //  get_update();
-
+  
   if (client.available()) {
-    serialEvent();
+//    if (num_predictions < 3) {
+        serialEvent();
+//    }
   } 
 
   if (!client.connected()) {
     client.stop();
+    for (int i=0; i<3;i++) {
+      Serial.print("Prediction: ");
+      for (int j=0;j<2;j++) {
+         Serial.print(N.in_prediction[i][j]);
+      }
+      Serial.println("");
+    }
     for(;;);
   }
+  
+//  Serial.println("loop ");
 }
 
 void connect_to_update() {
@@ -169,7 +182,7 @@ void connect_to_update() {
   if (client.connect(nextmuni, 80)) {
     Serial.println("Connected");
     // Make a HTTP request:
-//    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
+    // client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
     client.println("GET /munixml.txt HTTP/1.0");
     client.println();
   }  else {
@@ -181,7 +194,7 @@ void connect_to_update() {
 // Process each char from web
 void serialEvent() {
    char inChar = client.read();
-
+ 
    if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //     dataStr[rowCounter] = *tmpStr;
      tempRow = tmpStr;
@@ -198,12 +211,17 @@ void serialEvent() {
      }
      
     if (tempRow.startsWith("  <prediction", 0)) {
-//       Serial.println("Prediction: ");
-       int predictionValueIndexStart = tempRow.indexOf("minutes");
-       int predictionValueIndexEnd = tempRow.indexOf("isDeparture");
-       String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);
-       Serial.print("Prediction: ");
-       Serial.println(PredictionValue);
+      if (num_predictions < 3) {
+         int predictionValueIndexStart = tempRow.indexOf("minutes");
+         int predictionValueIndexEnd = tempRow.indexOf("isDeparture");
+         String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);      
+         PredictionValue.toCharArray(N.in_prediction[num_predictions], 3);
+         Serial.print("Prediction: ");
+         for (int i=0; i < 2; i++) {
+           Serial.print(N.in_prediction[num_predictions][i]);
+         }
+         num_predictions++;
+      }
      }
      
      if (tempRow.startsWith("  <direction", 0)) {
@@ -213,9 +231,6 @@ void serialEvent() {
        int directionTitleIndexEnd = tempRow.indexOf(">");
        String directionTitle = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);
        Serial.println(directionTitle);
-       /*
-       String route_direction = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexStart + 15);
-       N.route_direction = route_direction.substring(0,2); */
      }
      
      // Clear all Strings

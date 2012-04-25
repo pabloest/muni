@@ -97,7 +97,6 @@ int rowCounter = 0;
 
 typedef struct {
   String route;
-//  char direction[3];
   String route_direction;
   String stop_description;
   
@@ -203,18 +202,15 @@ void serialEvent() {
  
    if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //     dataStr[rowCounter] = *tmpStr;
-     Serial.print("Route: "); Serial.println(N.route);
-     Serial.print("Direction: "); Serial.println(N.route_direction);
-     Serial.print("Prediction: "); Serial.println(N.in_prediction[0]);
+//     Serial.print("Route: "); Serial.println(N.route);
+//     Serial.print("Direction: "); Serial.println(N.route_direction);
+//     Serial.print("Prediction: "); Serial.println(N.in_prediction[0]);
      tempRow = tmpStr;
      Serial.println(tempRow);
      if (tempRow.startsWith("<predictions", 0)) {
        if (N.route.length() < 1) {
-         Serial.println("Predictions header"); 
          int RouteTitleIndexStart = tempRow.indexOf("routeTitle"); //This gives the name of the MUNI line
-         Serial.println(RouteTitleIndexStart);
          int RouteTitleIndexEnd = tempRow.indexOf("routeTag"); //routeTag is the next tag after RouteTitle   
-         Serial.println(RouteTitleIndexEnd);
          String RouteTitle = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
          Serial.print("Route Title: "); Serial.println(RouteTitle); 
 //         N.route = RouteTitle;
@@ -229,18 +225,12 @@ void serialEvent() {
          int predictionValueIndexEnd = tempRow.indexOf("isDeparture");
          String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);      
          PredictionValue.toCharArray(N.in_prediction[num_predictions], 3);
-         Serial.print("Prediction: ");
-         for (int i=0; i < 2; i++) {
-           Serial.print(N.in_prediction[num_predictions][i]);
-         }
          num_predictions++;
       }
      }
      
      if (tempRow.startsWith("  <direction", 0)) {
        if (N.route_direction.length() < 1) {
-         Serial.print("Direction: ");
-         Serial.println(tempRow);
          int directionTitleIndexStart = tempRow.indexOf("title");
          int directionTitleIndexEnd = tempRow.indexOf(">");
          N.route_direction = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);

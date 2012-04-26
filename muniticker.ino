@@ -128,7 +128,6 @@ void setup() {
   Serial.begin(9600);
   // give the Ethernet shield a second to initialize:
   delay(800);
-//  connect_to_update();
 }
 
 void loop()
@@ -142,6 +141,7 @@ void loop()
 // search for any special messages
 
 // move to the next route
+
 //  Serial.println("OK, ready");
 //  get_update();
   if (attempt_connect) {
@@ -198,23 +198,14 @@ void serialEvent() {
    char inChar = client.read();
  
    if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
-//     dataStr[rowCounter] = *tmpStr;
-//     Serial.print("Route: "); Serial.println(N.route);
-//     Serial.print("Direction: "); Serial.println(N.route_direction);
-//     Serial.print("Prediction: "); Serial.println(N.in_prediction[0]);
      tempRow = tmpStr;
 //     Serial.println(tempRow);
      if (tempRow.startsWith("<predictions", 0)) {
        if (N.route.length() < 1) {
          int RouteTitleIndexStart = tempRow.indexOf("routeTitle"); //This gives the name of the MUNI line
          int RouteTitleIndexEnd = tempRow.indexOf("routeTag"); //routeTag is the next tag after RouteTitle   
-//         String RouteTitle = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
-//         Serial.print("Route Title: "); Serial.println(RouteTitle);
-//         Serial.println(N.route.length());
-//         N.route = RouteTitle;
          N.route = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
        }
-//       Serial.print("Route Title: "); Serial.println(RouteTitle); 
      }
      
     if (tempRow.startsWith("  <prediction", 0)) {

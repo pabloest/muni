@@ -148,6 +148,7 @@ void loop()
     connect_to_update();
     delay(400);
     attempt_connect = 0;
+    String URL = URL_constructor(4448,'N');
   }
   
   
@@ -156,13 +157,13 @@ void loop()
         serialEvent();
 //    }
   } 
-
+  
   if (!client.connected()) {
     client.stop();
     Serial.println("");
-    Serial.println(N.route);
-    Serial.print(N.route_direction);
-    Serial.print(": ");
+    Serial.println(N.route + " " + N.route_direction + " ");
+//    Serial.print(N.route_direction);
+//    Serial.print(": ");
 //    Serial.print(N.route_direction + ": ");
     for (int i=0; i<3;i++) {
       for (int j=0;j<2;j++) {
@@ -171,6 +172,7 @@ void loop()
       if (i<2) Serial.print(", ");
 //      Serial.println("");
     }
+    
     for(;;);
   }
   
@@ -191,6 +193,7 @@ void connect_to_update() {
     Serial.println("connection failed");
   }
 }
+
 
 ////////////////////////////
 // Process each char from web
@@ -235,6 +238,13 @@ void serialEvent() {
   //     Serial.print(tmpStr);
   }
 
+}
+
+String URL_constructor(int _stop_ID, char _route) {
+  String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
+  String suffix_URL = " HTTP/1.0";
+  String _URL = base_URL + _route + "&s=" + _stop_ID + suffix_URL;
+  return _URL;
 }
 
 // Function to clear a String

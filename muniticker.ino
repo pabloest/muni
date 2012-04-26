@@ -206,7 +206,7 @@ void serialEvent() {
 //     Serial.print("Direction: "); Serial.println(N.route_direction);
 //     Serial.print("Prediction: "); Serial.println(N.in_prediction[0]);
      tempRow = tmpStr;
-     Serial.println(tempRow);
+//     Serial.println(tempRow);
      if (tempRow.startsWith("<predictions", 0)) {
        if (N.route.length() < 1) {
          int RouteTitleIndexStart = tempRow.indexOf("routeTitle"); //This gives the name of the MUNI line

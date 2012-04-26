@@ -103,15 +103,10 @@ typedef struct {
   int in_stop_ID;
 //  time_t in_last_update;
   char prediction[3][2];
-  int in_prediction_2[3];
-  char in_prediction_3[3];
   String in_prediction_URL;
   
   int out_stop_ID;
 //  time_t out_last_update;
-  char out_prediction_1[3];
-  char out_prediction_2[3];
-  char out_prediction_3[3];
   String out_prediction_URL;
 } prediction;
 
@@ -164,6 +159,8 @@ void loop()
 
   if (!client.connected()) {
     client.stop();
+    Serial.println("");
+    Serial.println(N.route);
     Serial.print(N.route_direction);
     Serial.print(": ");
 //    Serial.print(N.route_direction + ": ");
@@ -211,10 +208,11 @@ void serialEvent() {
        if (N.route.length() < 1) {
          int RouteTitleIndexStart = tempRow.indexOf("routeTitle"); //This gives the name of the MUNI line
          int RouteTitleIndexEnd = tempRow.indexOf("routeTag"); //routeTag is the next tag after RouteTitle   
-         String RouteTitle = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
-         Serial.print("Route Title: "); Serial.println(RouteTitle); 
+//         String RouteTitle = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
+//         Serial.print("Route Title: "); Serial.println(RouteTitle);
+//         Serial.println(N.route.length());
 //         N.route = RouteTitle;
-//         N.route = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
+         N.route = tempRow.substring(RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
        }
 //       Serial.print("Route Title: "); Serial.println(RouteTitle); 
      }
@@ -232,7 +230,7 @@ void serialEvent() {
      if (tempRow.startsWith("  <direction", 0)) {
        if (N.route_direction.length() < 1) {
          int directionTitleIndexStart = tempRow.indexOf("title");
-         int directionTitleIndexEnd = tempRow.indexOf(">");
+         int directionTitleIndexEnd = tempRow.indexOf("to");
          N.route_direction = tempRow.substring(directionTitleIndexStart + 7, directionTitleIndexEnd - 1);
        }
      }

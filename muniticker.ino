@@ -102,7 +102,7 @@ typedef struct {
   
   int in_stop_ID;
 //  time_t in_last_update;
-  char in_prediction[3][2];
+  char prediction[3][2];
   int in_prediction_2[3];
   char in_prediction_3[3];
   String in_prediction_URL;
@@ -169,7 +169,7 @@ void loop()
 //    Serial.print(N.route_direction + ": ");
     for (int i=0; i<3;i++) {
       for (int j=0;j<2;j++) {
-         Serial.print(N.in_prediction[i][j]);
+         Serial.print(N.prediction[i][j]);
       }
       if (i<2) Serial.print(", ");
 //      Serial.println("");
@@ -224,7 +224,7 @@ void serialEvent() {
          int predictionValueIndexStart = tempRow.indexOf("minutes");
          int predictionValueIndexEnd = tempRow.indexOf("isDeparture");
          String PredictionValue = tempRow.substring(predictionValueIndexStart + 9, predictionValueIndexEnd - 2);      
-         PredictionValue.toCharArray(N.in_prediction[num_predictions], 3);
+         PredictionValue.toCharArray(N.prediction[num_predictions], 3);
          num_predictions++;
       }
      }

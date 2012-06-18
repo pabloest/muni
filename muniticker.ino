@@ -148,17 +148,17 @@ void loop()
     connect_to_update();
     delay(400);
     attempt_connect = 0;
-    String URL = URL_constructor(4448,'N');
+//    String URL = URL_constructor(4448,'N');
   }
   
-  
-  if (client.available()) {
-//    if (num_predictions < 3) {
-        serialEvent();
-//    }
+  if (client.connected()) {
+    if (client.available()) {
+       serialEvent();
+    }
   } 
   
   if (!client.connected()) {
+    client.flush();
     client.stop();
     Serial.println("");
     Serial.println(N.route + " " + N.route_direction + " ");
@@ -170,13 +170,14 @@ void loop()
          Serial.print(N.prediction[i][j]);
       }
       if (i<2) Serial.print(", ");
-//      Serial.println("");
     }
     
     for(;;);
   }
   
-//  Serial.println("loop ");
+//  delay(1000*2);
+//  attempt_connect = 1;
+
 }
 
 void connect_to_update() {
@@ -190,7 +191,7 @@ void connect_to_update() {
     client.println("GET /munixml.txt HTTP/1.0");
     client.println();
   }  else {
-    Serial.println("connection failed");
+    Serial.println("Connection failed.");
   }
 }
 

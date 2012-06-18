@@ -95,6 +95,11 @@ char LT=62; // > char
 int len;
 int rowCounter = 0;
 
+const int request_interval = 15000;  // delay between requests, 15 seconds
+const int refresh_interval = 1000;  // delay between screen refreshes, 1 second
+
+long last_refreshed = 0;            // last time text was written to display
+
 typedef struct {
   String route;
   String route_direction;
@@ -108,6 +113,7 @@ typedef struct {
   int out_stop_ID;
 //  time_t out_last_update;
   String out_prediction_URL;
+  long last_attempt;
 } prediction;
 
 prediction F, J, K, L, M, N, six, twentytwo, seventyone;
@@ -155,29 +161,30 @@ void loop()
     if (client.available()) {
        serialEvent();
     }
+//    else client.stop();
   } 
   
   if (!client.connected()) {
     client.flush();
     client.stop();
+}
+  
+  if (millis() - N.last_attempt > request_interval) {
+    attempt_connect = 1;
+    Serial.println("trigger refresh");
+  }
+  else if (millis() - last_refreshed > refresh_interval) {
+    // reprint previously recorded times
     Serial.println("");
     Serial.println(N.route + " " + N.route_direction + " ");
-//    Serial.print(N.route_direction);
-//    Serial.print(": ");
-//    Serial.print(N.route_direction + ": ");
     for (int i=0; i<3;i++) {
       for (int j=0;j<2;j++) {
          Serial.print(N.prediction[i][j]);
       }
       if (i<2) Serial.print(", ");
     }
-    
-    for(;;);
+    last_refreshed = millis();
   }
-  
-//  delay(1000*2);
-//  attempt_connect = 1;
-
 }
 
 void connect_to_update() {
@@ -193,6 +200,9 @@ void connect_to_update() {
   }  else {
     Serial.println("Connection failed.");
   }
+  
+  // record the last time the connection was attempted
+  N.last_attempt = millis();
 }
 
 
@@ -260,6 +270,8 @@ void clearStr (char* str) {
 void addChar (char ch, char* str) {
       str[strlen(str)] = ch;
 }
+
+// sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448
 
 /* ////// example response \\\\\\\
 HTTP/1.1 200 OK

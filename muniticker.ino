@@ -25,8 +25,8 @@ IPAddress myDns(8,8,8,8);
 byte gateway[] = { 192,168,1,176 }; // my macbook, sharing its internet connection
 byte subnet[] = { 255,255,255,0 };
 //byte nextmuni[] = { 64,124,123,57 }; // nextmuni API, IP address resolved by webservices.nextbus.com
-byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
-//char nextmuni[] = "webservices.nextbus.com";
+//byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
+char nextmuni[] = "webservices.nextbus.com";
 
 char tagStr[MAX_STRING_LEN] = "";
 char* dataStr = { "" };
@@ -114,12 +114,12 @@ void connect_to_update(char _route) {
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
 
 // DNS-based request:
-    client.println("GET /N-munixml.txt HTTP/1.0");
-//    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
-//    client.println("Host: webservices.nextbus.com");
-//    client.println("User-Agent: arduino");
+//    client.println("GET /N-munixml.txt HTTP/1.0");
+    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
+    client.println("Host: webservices.nextbus.com");
+    client.println("User-Agent: arduino");
 //    client.println("Accept */*");
-//    client.println("Connection: close");
+    client.println("Connection: close");
     client.println();
   }  else {
     Serial.println("Connection failed.");

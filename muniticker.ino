@@ -55,7 +55,7 @@ prediction* L_ptr = &L; prediction* M_ptr = &M; prediction* N_ptr = &N;
 prediction* six_ptr = &six; prediction* twentytwo_ptr = &twentytwo; prediction* seventyone_ptr = &seventyone;
 
 int num_predictions = 0;
-int attempt_connect = 1;
+//int attempt_connect = 1;
 
 EthernetClient client;
 
@@ -63,6 +63,8 @@ void setup() {
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
   Serial.begin(9600);
   delay(800); // give the Ethernet shield a second to initialize
+  N_ptr->attempt_connect = 1;
+  J_ptr->attempt_connect = 1;
 }
 
 void loop()
@@ -70,28 +72,43 @@ void loop()
 // find time of last update for the route, if needed, re-connect to the URL for the route, extraction some number of predictions
 // store predictions and timestamp of update into memory, search for any special messages, move to the next route
 
-  if (attempt_connect) {
-    connect_to_update('N');
+// check N route for last update
+// if N needs update, do it
+// check if 22 for last update
+// if 22 needs update, do it
+
+
+
+  if (N_ptr->attempt_connect) {
+    connect_to_update(N_ptr);
     delay(400);
-    attempt_connect = 0;
-//    String URL = URL_constructor(4448,'N');
+    N_ptr->attempt_connect = 0;
+    String URL = URL_constructor(4448,'N'); // N-Judah, inbound from Church and Duboce
+//    Serial.print("URL is: "); Serial.println(URL);
   }
-  
-//  if (client.connected()) {
-//    if (client.available()) {
-//       serialEvent(N_ptr);
-//    }
-////    else client.stop();
-//  } 
   
   if (!client.connected()) {
     client.flush();
     client.stop();
 //    Serial.println("Client stopped");
-}
+  }
   
+  if (J_ptr->attempt_connect) {
+  connect_to_update(J_ptr);
+  delay(400);
+  J_ptr->attempt_connect = 0;
+  String URL = URL_constructor(4006,'J'); // J-Church, inbound from Church and Duboce
+//    Serial.print("URL is: "); Serial.println(URL);
+  }
+  
+  if (!client.connected()) {
+    client.flush();
+    client.stop();
+//    Serial.println("Client stopped");
+  }
+
   if (millis() - N_ptr->last_attempt > request_interval) {
-    attempt_connect = 1;
+    N_ptr->attempt_connect = 1;
     Serial.println("trigger refresh");
   }
   else if (millis() - last_refreshed > refresh_interval) {
@@ -108,7 +125,7 @@ void loop()
   }
 }
 
-void connect_to_update(char _route) {
+void connect_to_update(prediction* _route) {
   num_predictions = 0;
   Serial.println("");
   Serial.println("Connecting...");
@@ -120,7 +137,7 @@ void connect_to_update(char _route) {
 
 // DNS-based request:
     client.println("GET /N-munixml.txt HTTP/1.0");
-//    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
+//    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.1");
 //    client.println("Host: webservices.nextbus.com");
 //    client.println("User-Agent: arduino");
 //    client.println("Accept: */*");
@@ -129,14 +146,14 @@ void connect_to_update(char _route) {
     delay(250);
     while (client.connected()) {
       if (client.available()) {
-        serialEvent(N_ptr); 
+        serialEvent(_route); 
         // test it, take action
         // clear the string, get ready for the next one
       }
     }
-    Serial.print("Route: "); Serial.print(N_ptr->route); Serial.print(" "); Serial.print(N_ptr->route_direction); Serial.println("|");
+    Serial.print("Route: "); Serial.print(_route->route); Serial.print(" "); Serial.print(_route->route_direction); Serial.println("|");
     // record the last time the connection was attempted
-    N_ptr->last_attempt = millis();
+    _route->last_attempt = millis();
 //    Serial.println("last attempt: " + N_ptr->last_attempt);
   }  else {
     Serial.println("Connection failed.");
@@ -146,11 +163,7 @@ void connect_to_update(char _route) {
 
 ////////////////////////////
 // Process each char from web
-void serialEvent(prediction* _route) {
-//  int string_length_route;
-//  int string_length_pred;
-//  int string_length_dir;
-   
+void serialEvent(prediction* _route) {   
   char inChar = client.read();   
   if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //    addChar('\0', tmpStr_ptr);

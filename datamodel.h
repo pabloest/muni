@@ -12,7 +12,7 @@ typedef struct {
 //  time_t in_last_update;
   char prediction_time[3][2];
 //  String in_prediction_URL;
-  
+  int attempt_connect;
   int out_stop_ID;
 //  time_t out_last_update;
 //  String out_prediction_URL;

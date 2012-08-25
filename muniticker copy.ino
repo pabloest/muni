@@ -32,8 +32,6 @@ char tagStr[MAX_STRING_LEN] = "";
 char* dataStr = { "" };
 char tmpStr[MAX_STRING_LEN] = "";
 char* tmpStr_ptr = &tmpStr[0];
-char strarr[MAX_STRING_LEN][MAX_STRING_ROWS] = { "" };
-char* strarr_ptr = &strarr[0][0];
 
 //String tempRow;
 //String* tempRow_ptr = &tempRow;
@@ -129,15 +127,12 @@ void connect_to_update(char _route) {
     delay(250);
     while (client.connected()) {
       if (client.available()) {
-        serialEvent(N_ptr); 
-        // test it, take action
-        // clear the string, get ready for the next one
+        serialEvent(N_ptr);
       }
     }
-    Serial.print("Route: "); Serial.print(N_ptr->route); Serial.print(" "); Serial.print(N_ptr->route_direction); Serial.println("|");
     // record the last time the connection was attempted
     N_ptr->last_attempt = millis();
-//    Serial.println("last attempt: " + N_ptr->last_attempt);
+    Serial.println("last attempt: " + N_ptr->last_attempt);
   }  else {
     Serial.println("Connection failed.");
   }
@@ -147,131 +142,62 @@ void connect_to_update(char _route) {
 ////////////////////////////
 // Process each char from web
 void serialEvent(prediction* _route) {
-//  int string_length_route;
-//  int string_length_pred;
-//  int string_length_dir;
+   int string_length_route;
+   int string_length_pred;
+   int string_length_dir;
    
-  char inChar = client.read();   
-  if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
-//    addChar('\0', tmpStr_ptr);
-    Serial.print("temp line: "); Serial.print(tmpStr); Serial.println("|");
-    // take action
-    if (strspn(tmpStr_ptr, "<predictions") == 12) {
-      Serial.println("this is a prediction category");
-      extractRoute(tmpStr, _route);
-    }
-    else if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
-      Serial.println("this is a prediction time");
-      extractTime(tmpStr, _route);
-    }
-    else if (strspn(tmpStr_ptr, "  <direction title=") == 19) {
-      Serial.println("this is a route title");
-      extractDir(tmpStr, _route);
-    }
-    // clear the string for the next line
-    clearStr(tmpStr_ptr);
-  }
-  else {
-    addChar(inChar, tmpStr_ptr);
-  }
-}
-
-void extractRoute(char * _tmpStr, prediction* _route) {
-  const char * RouteTitleIndexStart;
-  char * RouteTitleIndexEnd;
-  char route[16];
-  int string_length_route;
-  RouteTitleIndexStart = strstr(_tmpStr, "routeTitle="); //This gives the name of the MUNI line
-  RouteTitleIndexEnd = strstr(_tmpStr, "routeTag="); //routeTag is the next tag after RouteTitle
-  string_length_route = (RouteTitleIndexEnd - 2) - (RouteTitleIndexStart+12);
-//  Serial.print("route length: "); Serial.println(string_length_route);
-  memcpy(route, RouteTitleIndexStart+12, string_length_route);
-  route[string_length_route] = '\0';
-//  Serial.print("route: "); Serial.print(route);Serial.println("|");
-  memcpy(_route->route, route, 16);
-}
-
-void extractTime(char * _tmpStr, prediction* _route) {
-  if (num_predictions < 3) {
-    const char * predictionValueIndexStart;
-    char * predictionValueIndexEnd;
-    int string_length_pred;
-    char mins[3];
-    predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
-    predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
-    string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
-  //  Serial.print("time length: ");Serial.println(string_length_pred);
-    memcpy(mins, predictionValueIndexStart+9, string_length_pred);
-    mins[string_length_pred] = '\0';
-  //  Serial.print("mins: "); Serial.print(mins);Serial.println("|");
-    memcpy(_route->prediction_time[num_predictions], mins, string_length_pred);
-    num_predictions++;
-  }
-}
-
-void extractDir(char * _tmpStr, prediction* _route) {
-  const char * directionTitleIndexStart;
-  char * directionTitleIndexEnd;
-  int string_length_dir; 
-  char dir[8];
-  directionTitleIndexStart = strstr(tmpStr_ptr, "title=");
-  directionTitleIndexEnd = strstr(tmpStr_ptr, "to ");
-  string_length_dir = (directionTitleIndexEnd - 2) - (directionTitleIndexStart + 6);
-//  Serial.print("direction length: ");Serial.println(string_length_dir);
-  memcpy(dir, directionTitleIndexStart+7, string_length_dir);
-  dir[string_length_dir] = '\0';
-  memcpy(_route->route_direction, dir, 8);
-//  Serial.print("direction: "); Serial.print(dir);Serial.println("|");
-}
-
-//     delay(5);
-////     Serial.print("end of row, tempstring: "); Serial.println(tmpStr_ptr);
-////     Serial.println(strspn(tmpStr, "<predictions"));
-//     if (strspn(tmpStr_ptr, "<predictions") == 12) {
-//       Serial.println("predictions found");
-//       if (_route->route != "") {
-//         const char * RouteTitleIndexStart;
-//         char * RouteTitleIndexEnd;
-//         RouteTitleIndexStart = strstr(tmpStr_ptr, "routeTitle="); //This gives the name of the MUNI line
-//         RouteTitleIndexEnd = strstr(tmpStr_ptr, "routeTag="); //routeTag is the next tag after RouteTitle
-////         Serial.print("route title starts: ");Serial.println(RouteTitleIndexStart+11); Serial.print("ends: ");Serial.println(RouteTitleIndexEnd-2);
-//////         _route->route = tmpStr[RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
-//         string_length_route = (RouteTitleIndexEnd - 2) - (RouteTitleIndexStart+12);
-//         Serial.print("length: ");Serial.println(string_length_route);
-//         char* tmpRoute[string_length_route+1];
-//         Serial.print("Free: "); Serial.println(freeRam());
-//         strncpy(*tmpRoute, (RouteTitleIndexStart+12), string_length_route);
-//         *tmpRoute[string_length_route+1] = '\0';
-//         Serial.print("tmpRoute: "); Serial.println(*tmpRoute);
-//         Serial.print("Free: "); Serial.println(freeRam());
-////         _route->route = String(*tmpRoute);
-//       }
-//     }
+   char inChar = client.read();
+   Serial.print(inChar);
+   if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
+     addChar('\0', tmpStr_ptr);
+     delay(5);
+//     Serial.print("end of row, tempstring: "); Serial.println(tmpStr_ptr);
+//     Serial.println(strspn(tmpStr, "<predictions"));
+     if (strspn(tmpStr_ptr, "<predictions") == 12) {
+       Serial.println("predictions found");
+       if (_route->route != "") {
+         const char * RouteTitleIndexStart;
+         char * RouteTitleIndexEnd;
+         RouteTitleIndexStart = strstr(tmpStr_ptr, "routeTitle="); //This gives the name of the MUNI line
+         RouteTitleIndexEnd = strstr(tmpStr_ptr, "routeTag="); //routeTag is the next tag after RouteTitle
+//         Serial.print("route title starts: ");Serial.println(RouteTitleIndexStart+11); Serial.print("ends: ");Serial.println(RouteTitleIndexEnd-2);
+////         _route->route = tmpStr[RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
+         string_length_route = (RouteTitleIndexEnd - 2) - (RouteTitleIndexStart+12);
+         Serial.print("length: ");Serial.println(string_length_route);
+         char* tmpRoute[string_length_route+1];
+         Serial.print("Free: "); Serial.println(freeRam());
+         strncpy(*tmpRoute, (RouteTitleIndexStart+12), string_length_route);
+         *tmpRoute[string_length_route+1] = '\0';
+         Serial.print("tmpRoute: "); Serial.println(*tmpRoute);
+         Serial.print("Free: "); Serial.println(freeRam());
+//         _route->route = String(*tmpRoute);
+       }
+     }
      
-//    if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
-//      Serial.println("true!");
-//      if (num_predictions < 3) {
-//         const char * predictionValueIndexStart;
-//         char * predictionValueIndexEnd;
-////         char tmpPred[4]; // max prediction time will be 3 digits long, plus one more for null terminating char
-////         char* tmpPred_ptr = &tmpPred[0];
-//         
-//         predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
-//         predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
-//         string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
-//         char* tmpPred[string_length_pred+1];
-////         Serial.print("prediction starts: ");Serial.println(predictionValueIndexStart + 9);
-//         Serial.print("length: "); Serial.println(string_length_pred);
-//         strncpy(*tmpPred, (predictionValueIndexStart+9), string_length_pred);
-//         *tmpPred[string_length_pred-1] = '\0';
-//         Serial.print("Minutes: "); Serial.print(*tmpPred); Serial.println("|");
-////         strncpy(_route->prediction_time[num_predictions], &tmpStr[predictionValueIndexStart + 10], string_length - 10); 
-//         
-////         _route->prediction_time[num_predictions] = tmpPred;   
-////         PredictionValue.toCharArray(_route->prediction_time[num_predictions], 3);
-//         num_predictions++;
-//      }
-//     }
+    if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
+      Serial.println("true!");
+      if (num_predictions < 3) {
+         const char * predictionValueIndexStart;
+         char * predictionValueIndexEnd;
+//         char tmpPred[4]; // max prediction time will be 3 digits long, plus one more for null terminating char
+//         char* tmpPred_ptr = &tmpPred[0];
+         
+         predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
+         predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
+         string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
+         char* tmpPred[string_length_pred+1];
+//         Serial.print("prediction starts: ");Serial.println(predictionValueIndexStart + 9);
+         Serial.print("length: "); Serial.println(string_length_pred);
+         strncpy(*tmpPred, (predictionValueIndexStart+9), string_length_pred);
+         *tmpPred[string_length_pred-1] = '\0';
+         Serial.print("Minutes: "); Serial.print(*tmpPred); Serial.println("|");
+//         strncpy(_route->prediction_time[num_predictions], &tmpStr[predictionValueIndexStart + 10], string_length - 10); 
+         
+//         _route->prediction_time[num_predictions] = tmpPred;   
+//         PredictionValue.toCharArray(_route->prediction_time[num_predictions], 3);
+         num_predictions++;
+      }
+     }
      
 //     if (strspn(tmpStr_ptr, "  <direction title=") == 1) {
 //       Serial.println("directions found");
@@ -291,11 +217,18 @@ void extractDir(char * _tmpStr, prediction* _route) {
 ////         strncpy(tmpDirection, &tmpStr[directionTitleIndexStart + 10], string_length - 10);
 ////         _route->route_direction = String(tmpDirection);
 //     }
-//     
-//     // Clear all Strings
-//     clearStr(tmpStr_ptr);
-//   }
-//}
+     
+     // Clear all Strings
+     clearStr(tmpStr_ptr);
+   }
+     
+  else  {
+   addChar(inChar, tmpStr_ptr);
+//   Serial.print("temprow: "); Serial.println(tmpStr);
+  //     Serial.print(tmpStr);
+  }
+
+}
 
 int freeRam () {
   extern int __heap_start, *__brkval; 

@@ -4,8 +4,8 @@
 #include <WString.h>
 
 typedef struct {
-  char route[];
-  char route_direction[];
+  char route[16];
+  char route_direction[8];
 //  String stop_description;
   
   int in_stop_ID;

@@ -17,6 +17,7 @@ typedef struct {
 //  time_t out_last_update;
 //  String out_prediction_URL;
   long last_attempt;
+  long last_refreshed;
 } prediction;
 
 #endif 

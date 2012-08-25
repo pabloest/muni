@@ -14,7 +14,7 @@
 #include "datamodel.h"
 
 // Max String length may have to be adjusted depending on data to be extracted
-#define MAX_STRING_LEN  200
+#define MAX_STRING_LEN  220
 #define MAX_STRING_ROWS 50
 
 // Enter a MAC address and IP address for your controller below.
@@ -25,8 +25,8 @@ IPAddress myDns(8,8,8,8);
 byte gateway[] = { 192,168,1,176 }; // my macbook, sharing its internet connection
 byte subnet[] = { 255,255,255,0 };
 //byte nextmuni[] = { 64,124,123,57 }; // nextmuni API, IP address resolved by webservices.nextbus.com
-byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
-//char nextmuni[] = "webservices.nextbus.com";
+//byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
+char nextmuni[] = "webservices.nextbus.com";
 
 char tagStr[MAX_STRING_LEN] = "";
 char* dataStr = { "" };
@@ -45,9 +45,9 @@ char LT=62; // > char
 int len;
 int rowCounter = 0;
 
-const int request_interval = 10000;  // delay between requests, 60 seconds
+const int request_interval = 10000;  // delay between requests, 10 seconds
 const int refresh_interval = 1000;  // delay between screen refreshes, 1 second
-long last_refreshed = 0;            // last time text was written to display
+//long last_refreshed = 0;            // last time text was written to display
 
 prediction N, F, J, K, L, M, six, twentytwo, seventyone;
 prediction* F_ptr = &F; prediction* J_ptr = &J; prediction* K_ptr = &K;
@@ -64,7 +64,10 @@ void setup() {
   Serial.begin(9600);
   delay(800); // give the Ethernet shield a second to initialize
   N_ptr->attempt_connect = 1;
+  N_ptr->last_refreshed = 0;
   J_ptr->attempt_connect = 1;
+  J_ptr->last_refreshed = 0;
+  
 }
 
 void loop()
@@ -74,61 +77,75 @@ void loop()
 
 // check N route for last update
 // if N needs update, do it
-// check if 22 for last update
-// if 22 needs update, do it
-
-
-
-  if (N_ptr->attempt_connect) {
-    connect_to_update(N_ptr);
-    delay(400);
-    N_ptr->attempt_connect = 0;
-    String URL = URL_constructor(4448,'N'); // N-Judah, inbound from Church and Duboce
-//    Serial.print("URL is: "); Serial.println(URL);
-  }
-  
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-//    Serial.println("Client stopped");
-  }
-  
-  if (J_ptr->attempt_connect) {
-  connect_to_update(J_ptr);
-  delay(400);
-  J_ptr->attempt_connect = 0;
-  String URL = URL_constructor(4006,'J'); // J-Church, inbound from Church and Duboce
-//    Serial.print("URL is: "); Serial.println(URL);
-  }
-  
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-//    Serial.println("Client stopped");
-  }
+// check if J for last update
+// if J needs update, do it
 
   if (millis() - N_ptr->last_attempt > request_interval) {
+    String N_URL = URL_constructor(4448,'N'); // N-Judah, inbound from Church and Duboce
+//    Serial.print("N updating "); Serial.println(N_URL);
     N_ptr->attempt_connect = 1;
-    Serial.println("trigger refresh");
+    connect_to_update(N_ptr, N_URL);
+    delay(400);
+    N_ptr->attempt_connect = 0;
   }
-  else if (millis() - last_refreshed > refresh_interval) {
+  else if (millis() - N_ptr->last_refreshed > refresh_interval) {
     // reprint previously recorded times
-    Serial.println("");
-//    Serial.println(N_ptr->route . " " . N_ptr->route_direction . " ");
-    for (int i=0; i<3;i++) {
-      for (int j=0;j<2;j++) {
-         Serial.print(N_ptr->prediction_time[i][j]);
+    if (strlen(N_ptr->route) > 1) {
+      Serial.println("");
+      Serial.print(N_ptr->route);Serial.print(" ");Serial.print(N_ptr->route_direction);Serial.println(": ");
+      for (int i=0; i<3;i++) {
+        for (int j=0;j<2;j++) {
+           Serial.print(N_ptr->prediction_time[i][j]);
+        }
+        if (i<2) Serial.print(", ");
       }
-      if (i<2) Serial.print(", ");
+      N_ptr->last_refreshed = millis();
     }
-    last_refreshed = millis();
+  }
+  
+  if (!client.connected()) {
+    client.flush();
+    client.stop();
+//    Serial.println("Client stopped");
+  }
+//  
+//  delay(1000);
+  
+  if (millis() - J_ptr->last_attempt > request_interval) {
+    String J_URL = URL_constructor(4006,'J'); // J-Church, inbound from Church and Duboce
+    Serial.print("Updating J-Church");
+    J_ptr->attempt_connect = 1;
+    connect_to_update(J_ptr, J_URL);
+    delay(400);
+    J_ptr->attempt_connect = 0;
+    
+  }
+  else if (millis() - J_ptr->last_refreshed > refresh_interval) {
+    // reprint previously recorded times
+   if (strlen(J_ptr->route) > 1) {
+      Serial.println("");
+    
+      Serial.print(J_ptr->route);Serial.print(" ");Serial.print(J_ptr->route_direction);Serial.println(": ");
+      for (int i=0; i<3;i++) {
+        for (int j=0;j<2;j++) {
+           Serial.print(J_ptr->prediction_time[i][j]);
+        }
+        if (i<2) Serial.print(", ");
+      }
+      J_ptr->last_refreshed = millis();
+    }
+  }
+  
+  if (!client.connected()) {
+    client.flush();
+    client.stop();
+//    Serial.println("Client stopped");
   }
 }
 
-void connect_to_update(prediction* _route) {
+void connect_to_update(prediction* _route, String _URL) {
   num_predictions = 0;
   Serial.println("");
-  Serial.println("Connecting...");
     // if you get a connection, report back via serial:
   if (client.connect(nextmuni, 80)) {
     Serial.println("Connected");
@@ -136,9 +153,10 @@ void connect_to_update(prediction* _route) {
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
 
 // DNS-based request:
-    client.println("GET /N-munixml.txt HTTP/1.0");
+//    client.println("GET /N-munixml.txt HTTP/1.0");
+    client.println(_URL);
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.1");
-//    client.println("Host: webservices.nextbus.com");
+    client.println("Host: webservices.nextbus.com");
 //    client.println("User-Agent: arduino");
 //    client.println("Accept: */*");
 //    client.println("Connection: close");
@@ -151,12 +169,12 @@ void connect_to_update(prediction* _route) {
         // clear the string, get ready for the next one
       }
     }
-    Serial.print("Route: "); Serial.print(_route->route); Serial.print(" "); Serial.print(_route->route_direction); Serial.println("|");
+//    Serial.print("Route: "); Serial.print(_route->route); Serial.print(" "); Serial.print(_route->route_direction); Serial.println("|");
     // record the last time the connection was attempted
     _route->last_attempt = millis();
 //    Serial.println("last attempt: " + N_ptr->last_attempt);
   }  else {
-    Serial.println("Connection failed.");
+    Serial.println("Update failed");
   }
 }
 
@@ -167,24 +185,24 @@ void serialEvent(prediction* _route) {
   char inChar = client.read();   
   if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //    addChar('\0', tmpStr_ptr);
-    Serial.print("temp line: "); Serial.print(tmpStr); Serial.println("|");
+//    Serial.print("temp line: "); Serial.print(tmpStr); Serial.println("|");
     // take action
     if (strspn(tmpStr_ptr, "<predictions") == 12) {
-      Serial.println("this is a prediction category");
+//      Serial.println("this is a prediction category");
       extractRoute(tmpStr, _route);
     }
     else if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
-      Serial.println("this is a prediction time");
+//      Serial.println("this is a prediction time");
       extractTime(tmpStr, _route);
     }
     else if (strspn(tmpStr_ptr, "  <direction title=") == 19) {
-      Serial.println("this is a route title");
+//      Serial.println("this is a route title");
       extractDir(tmpStr, _route);
     }
     // clear the string for the next line
     clearStr(tmpStr_ptr);
   }
-  else {
+  else if (strlen(tmpStr) < MAX_STRING_LEN)  {
     addChar(inChar, tmpStr_ptr);
   }
 }
@@ -216,7 +234,7 @@ void extractTime(char * _tmpStr, prediction* _route) {
   //  Serial.print("time length: ");Serial.println(string_length_pred);
     memcpy(mins, predictionValueIndexStart+9, string_length_pred);
     mins[string_length_pred] = '\0';
-  //  Serial.print("mins: "); Serial.print(mins);Serial.println("|");
+//    Serial.print("mins: "); Serial.print(mins);Serial.println("|");
     memcpy(_route->prediction_time[num_predictions], mins, string_length_pred);
     num_predictions++;
   }

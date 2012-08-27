@@ -45,7 +45,7 @@ char LT=62; // > char
 int len;
 int rowCounter = 0;
 
-const int request_interval = 10000;  // delay between requests, 10 seconds
+const int request_interval = 30000;  // delay between requests, 30 seconds
 const int refresh_interval = 1000;  // delay between screen refreshes, 1 second
 //long last_refreshed = 0;            // last time text was written to display
 
@@ -61,13 +61,18 @@ EthernetClient client;
 
 void setup() {
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(800); // give the Ethernet shield a second to initialize
   N_ptr->attempt_connect = 1;
   N_ptr->last_refreshed = 0;
   J_ptr->attempt_connect = 1;
   J_ptr->last_refreshed = 0;
+  twentytwo_ptr->attempt_connect = 1;
+  twentytwo_ptr->last_refreshed = 0;
+  seventyone_ptr->attempt_connect = 1;
+  seventyone_ptr->last_refreshed = 0;
   
+  Serial.println(" ");Serial.println("Initializing...");Serial.println("");
 }
 
 void loop()
@@ -75,14 +80,9 @@ void loop()
 // find time of last update for the route, if needed, re-connect to the URL for the route, extraction some number of predictions
 // store predictions and timestamp of update into memory, search for any special messages, move to the next route
 
-// check N route for last update
-// if N needs update, do it
-// check if J for last update
-// if J needs update, do it
-
+/* ////// N-Judah \\\\\\\ */
   if (millis() - N_ptr->last_attempt > request_interval) {
-    String N_URL = URL_constructor(4448,'N'); // N-Judah, inbound from Church and Duboce
-//    Serial.print("N updating "); Serial.println(N_URL);
+    String N_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
     N_ptr->attempt_connect = 1;
     connect_to_update(N_ptr, N_URL);
     delay(400);
@@ -106,19 +106,16 @@ void loop()
   if (!client.connected()) {
     client.flush();
     client.stop();
-//    Serial.println("Client stopped");
   }
-//  
-//  delay(1000);
-  
+
+/* ////// J-Church \\\\\\\ */
   if (millis() - J_ptr->last_attempt > request_interval) {
-    String J_URL = URL_constructor(4006,'J'); // J-Church, inbound from Church and Duboce
-    Serial.print("Updating J-Church");
+    String J_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
+    Serial.println("Updating J-Church");
     J_ptr->attempt_connect = 1;
     connect_to_update(J_ptr, J_URL);
     delay(400);
     J_ptr->attempt_connect = 0;
-    
   }
   else if (millis() - J_ptr->last_refreshed > refresh_interval) {
     // reprint previously recorded times
@@ -139,8 +136,98 @@ void loop()
   if (!client.connected()) {
     client.flush();
     client.stop();
-//    Serial.println("Client stopped");
   }
+
+/* ////// 22-Fillmore \\\\\\\ */
+  if (millis() - twentytwo_ptr->last_attempt > request_interval) {
+    String twentytwo_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
+    Serial.println("Updating 22-Fill");
+    twentytwo_ptr->attempt_connect = 1;
+    connect_to_update(twentytwo_ptr, twentytwo_URL);
+    delay(400);
+    twentytwo_ptr->attempt_connect = 0;
+  }
+  else if (millis() - twentytwo_ptr->last_refreshed > refresh_interval) {
+    // reprint previously recorded times
+   if (strlen(twentytwo_ptr->route) > 1) {
+      Serial.println("");
+      Serial.print(twentytwo_ptr->route);Serial.print(" ");Serial.print(twentytwo_ptr->route_direction);Serial.println(": ");
+      for (int i=0; i<3;i++) {
+        for (int j=0;j<2;j++) {
+           Serial.print(twentytwo_ptr->prediction_time[i][j]);
+        }
+        if (i<2) Serial.print(", ");
+      }
+      twentytwo_ptr->last_refreshed = millis();
+    }
+  }
+  
+  if (!client.connected()) {
+    client.flush();
+    client.stop();
+  }
+
+///* ////// 71-Haight \\\\\\\ */
+//  if (millis() - seventyone_ptr->last_attempt > request_interval) {
+//    String seventyone_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
+//    Serial.println("Updating 71-Haig");
+//    seventyone_ptr->attempt_connect = 1;
+//    Serial.println(seventyone_URL);
+//    connect_to_update(seventyone_ptr, seventyone_URL);
+//    delay(400);
+//    seventyone_ptr->attempt_connect = 0;
+//  }
+//  else if (millis() - seventyone_ptr->last_refreshed > refresh_interval) {
+//    // reprint previously recorded times
+//   if (strlen(seventyone_ptr->route) > 1) {
+//      Serial.println("");
+//      Serial.print(seventyone_ptr->route);Serial.print(" ");Serial.print(seventyone_ptr->route_direction);Serial.println(": ");
+//      for (int i=0; i<3;i++) {
+//        for (int j=0;j<2;j++) {
+//           Serial.print(seventyone_ptr->prediction_time[i][j]);
+//        }
+//        if (i<2) Serial.print(", ");  
+//      }
+//      seventyone_ptr->last_refreshed = millis();
+//    }
+//  }
+//  
+//  if (!client.connected()) {
+//    client.flush();
+//    client.stop();
+//  }
+
+/* ////// 71-Haight \\\\\\\ */
+//  if (millis() - seventyone_ptr->last_attempt > request_interval) {
+//    String seventyone_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
+//    Serial.println("Updating 71-Haig");
+//    seventyone_ptr->attempt_connect = 1;
+//    Serial.println(seventyone_URL);
+//    connect_to_update(seventyone_ptr, seventyone_URL);
+//    delay(400);
+//    seventyone_ptr->attempt_connect = 0;
+//  }
+//  else if (millis() - seventyone_ptr->last_refreshed > refresh_interval) {
+//    // reprint previously recorded times
+//   if (strlen(seventyone_ptr->route) > 1) {
+//      Serial.println("");
+//      Serial.print(seventyone_ptr->route);Serial.print(" ");Serial.print(seventyone_ptr->route_direction);Serial.println(": ");
+//      for (int i=0; i<3;i++) {
+//        for (int j=0;j<2;j++) {
+//           Serial.print(seventyone_ptr->prediction_time[i][j]);
+//        }
+//        if (i<2) Serial.print(", ");  
+//      }
+//      seventyone_ptr->last_refreshed = millis();
+//    }
+//  }
+//  
+//  if (!client.connected()) {
+//    client.flush();
+//    client.stop();
+//  }
+
+// END OF LOOP
 }
 
 void connect_to_update(prediction* _route, String _URL) {
@@ -210,7 +297,7 @@ void serialEvent(prediction* _route) {
 void extractRoute(char * _tmpStr, prediction* _route) {
   const char * RouteTitleIndexStart;
   char * RouteTitleIndexEnd;
-  char route[16];
+  char route[7];
   int string_length_route;
   RouteTitleIndexStart = strstr(_tmpStr, "routeTitle="); //This gives the name of the MUNI line
   RouteTitleIndexEnd = strstr(_tmpStr, "routeTag="); //routeTag is the next tag after RouteTitle
@@ -255,86 +342,13 @@ void extractDir(char * _tmpStr, prediction* _route) {
 //  Serial.print("direction: "); Serial.print(dir);Serial.println("|");
 }
 
-//     delay(5);
-////     Serial.print("end of row, tempstring: "); Serial.println(tmpStr_ptr);
-////     Serial.println(strspn(tmpStr, "<predictions"));
-//     if (strspn(tmpStr_ptr, "<predictions") == 12) {
-//       Serial.println("predictions found");
-//       if (_route->route != "") {
-//         const char * RouteTitleIndexStart;
-//         char * RouteTitleIndexEnd;
-//         RouteTitleIndexStart = strstr(tmpStr_ptr, "routeTitle="); //This gives the name of the MUNI line
-//         RouteTitleIndexEnd = strstr(tmpStr_ptr, "routeTag="); //routeTag is the next tag after RouteTitle
-////         Serial.print("route title starts: ");Serial.println(RouteTitleIndexStart+11); Serial.print("ends: ");Serial.println(RouteTitleIndexEnd-2);
-//////         _route->route = tmpStr[RouteTitleIndexStart + 12, RouteTitleIndexEnd - 2);
-//         string_length_route = (RouteTitleIndexEnd - 2) - (RouteTitleIndexStart+12);
-//         Serial.print("length: ");Serial.println(string_length_route);
-//         char* tmpRoute[string_length_route+1];
-//         Serial.print("Free: "); Serial.println(freeRam());
-//         strncpy(*tmpRoute, (RouteTitleIndexStart+12), string_length_route);
-//         *tmpRoute[string_length_route+1] = '\0';
-//         Serial.print("tmpRoute: "); Serial.println(*tmpRoute);
-//         Serial.print("Free: "); Serial.println(freeRam());
-////         _route->route = String(*tmpRoute);
-//       }
-//     }
-     
-//    if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
-//      Serial.println("true!");
-//      if (num_predictions < 3) {
-//         const char * predictionValueIndexStart;
-//         char * predictionValueIndexEnd;
-////         char tmpPred[4]; // max prediction time will be 3 digits long, plus one more for null terminating char
-////         char* tmpPred_ptr = &tmpPred[0];
-//         
-//         predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
-//         predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
-//         string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
-//         char* tmpPred[string_length_pred+1];
-////         Serial.print("prediction starts: ");Serial.println(predictionValueIndexStart + 9);
-//         Serial.print("length: "); Serial.println(string_length_pred);
-//         strncpy(*tmpPred, (predictionValueIndexStart+9), string_length_pred);
-//         *tmpPred[string_length_pred-1] = '\0';
-//         Serial.print("Minutes: "); Serial.print(*tmpPred); Serial.println("|");
-////         strncpy(_route->prediction_time[num_predictions], &tmpStr[predictionValueIndexStart + 10], string_length - 10); 
-//         
-////         _route->prediction_time[num_predictions] = tmpPred;   
-////         PredictionValue.toCharArray(_route->prediction_time[num_predictions], 3);
-//         num_predictions++;
-//      }
-//     }
-     
-//     if (strspn(tmpStr_ptr, "  <direction title=") == 1) {
-//       Serial.println("directions found");
-//         const char * directionTitleIndexStart;
-//         char * directionTitleIndexEnd;
-//         
-//         directionTitleIndexStart = strstr(tmpStr_ptr, "title=");
-//         directionTitleIndexEnd = strstr(tmpStr_ptr, "to ");
-//         Serial.print("direction title starts: ");Serial.println(directionTitleIndexStart); Serial.print("ends: ");Serial.println(directionTitleIndexEnd);
-//         string_length_dir = (directionTitleIndexEnd - 1) - (directionTitleIndexStart + 6);
-//         char* tmpDir[string_length_dir];
-//         Serial.print("length: "); Serial.println(string_length_dir);
-//         strncpy(*tmpDir, (directionTitleIndexStart+6), string_length_dir);
-//         *tmpDir[string_length_dir+1] = '\0';
-//         Serial.print("Direction: "); Serial.print(*tmpDir); Serial.println("|");
-//
-////         strncpy(tmpDirection, &tmpStr[directionTitleIndexStart + 10], string_length - 10);
-////         _route->route_direction = String(tmpDirection);
-//     }
-//     
-//     // Clear all Strings
-//     clearStr(tmpStr_ptr);
-//   }
-//}
-
 int freeRam () {
   extern int __heap_start, *__brkval; 
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
-String URL_constructor(int _stop_ID, char _route) {
+String URL_constructor(int _stop_ID, char _route[2]) {
   String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
   String suffix_URL = " HTTP/1.0";
   String _URL = base_URL + _route + "&s=" + _stop_ID + suffix_URL;

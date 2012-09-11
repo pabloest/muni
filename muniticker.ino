@@ -46,7 +46,7 @@ byte len;
 byte rowCounter = 0;
 
 const int request_interval = 30000;  // delay between requests, 30 seconds
-const int refresh_interval = 1000;  // delay between screen refreshes, 1 second
+const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 //long last_refreshed = 0;            // last time text was written to display
 
 prediction N, F, J, K, L, M, six, twentytwo, seventyone;
@@ -60,6 +60,8 @@ int num_avail_routes = 5;
 byte num_predictions = 0;
 //int attempt_connect = 1;
 byte next_displayed = 0;
+long last_display_refresh;
+boolean display_direction = true;
 
 EthernetClient client;
 
@@ -81,9 +83,9 @@ void setup() {
   twentytwo_ptr->last_refreshed_out = 0;
   seventyone_ptr->attempt_connect = 1;
   seventyone_ptr->last_refreshed_in = 0;
-  seventyone_ptr->last_refreshed_out = 0;
-  
+  seventyone_ptr->last_refreshed_out = 0; 
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
+  last_display_refresh = millis();
 }
 
 void loop()
@@ -93,23 +95,36 @@ void loop()
 
 //Serial.print("mem free 1: ");Serial.println(freeRam());
 
+// update the display to start
+if (millis() - last_display_refresh > refresh_interval) {
+  Serial.println("");Serial.println("refreshing...");Serial.println("");
+  if (display_direction) update_display(next_displayed, 1);
+  else update_display(next_displayed, 0);
+  display_direction = !display_direction;
+  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+  else next_displayed = 0;
+  last_display_refresh = millis();
+}
+
 /* ////// N-Judah \\\\\\\ */
   if (millis() - N_ptr->last_attempt_in > request_interval) {
     String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
     N_ptr->attempt_connect = 1;
     connect_to_update(N_ptr, N_in_URL, 1);
-    delay(400);
+    delay(50);
     N_ptr->attempt_connect = 0;
   }
-  else if (millis() - N_ptr->last_refreshed_in > refresh_interval) {
-    // reprint previously recorded times
-    if (strlen(N_ptr->route) > 1) {
-      N_ptr->last_refreshed_in = millis();
-      update_display(next_displayed, 1);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
+//  else if (millis() - N_ptr->last_refreshed_in > refresh_interval) {
+//    // reprint previously recorded times
+//    if (strlen(N_ptr->route) > 1) {
+//      N_ptr->last_refreshed_in = millis();
+//      update_display(next_displayed, 1);
+//      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+//      else next_displayed = 0;
+//    }
+//  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -123,15 +138,7 @@ void loop()
     delay(400);
     N_ptr->attempt_connect = 0;
   }
-  else if (millis() - N_ptr->last_refreshed_out > refresh_interval) {
-    // reprint previously recorded times
-    if (strlen(N_ptr->route) > 1) {
-      N_ptr->last_refreshed_out = millis();
-      update_display(next_displayed, 0);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -146,15 +153,7 @@ void loop()
     delay(400);
     J_ptr->attempt_connect = 0;
   }
-  else if (millis() - J_ptr->last_refreshed_in > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(J_ptr->route) > 1) {
-      J_ptr->last_refreshed_in = millis();
-      update_display(next_displayed, 1);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -166,18 +165,10 @@ void loop()
 //    Serial.println("Updating J-Church");
     J_ptr->attempt_connect = 1;
     connect_to_update(J_ptr, J_URL, 0);
-    delay(400);
+    delay(50);
     J_ptr->attempt_connect = 0;
   }
-  else if (millis() - J_ptr->last_refreshed_out > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(J_ptr->route) > 1) {
-      J_ptr->last_refreshed_out = millis();
-      update_display(next_displayed, 0);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -189,18 +180,10 @@ void loop()
 //    Serial.println("Updating 6-Parnassus");
     six_ptr->attempt_connect = 1;
     connect_to_update(six_ptr, six_URL, 1);
-    delay(400);
+    delay(50);
     six_ptr->attempt_connect = 0;
   }
-  else if (millis() - six_ptr->last_refreshed_in > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(six_ptr->route) > 1) {
-      six_ptr->last_refreshed_in = millis();
-      update_display(next_displayed, 1);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -212,18 +195,10 @@ void loop()
 //    Serial.println("Updating 6-Parnassus");
     six_ptr->attempt_connect = 1;
     connect_to_update(six_ptr, six_URL, 0);
-    delay(400);
+    delay(50);
     six_ptr->attempt_connect = 0;
   }
-  else if (millis() - six_ptr->last_refreshed_out > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(six_ptr->route) > 1) {
-      six_ptr->last_refreshed_out = millis();
-      update_display(next_displayed, 0);
-      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-      else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -236,18 +211,10 @@ void loop()
 //    Serial.println("Updating 22-Fill");
     twentytwo_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_ptr, twentytwo_URL, 1);
-    delay(400);
+    delay(50);
     twentytwo_ptr->attempt_connect = 0;
   }
-  else if (millis() - twentytwo_ptr->last_refreshed_in > refresh_interval) {
-    // recorded times
-   if (strlen(twentytwo_ptr->route) > 1) {
-     twentytwo_ptr->last_refreshed_in = millis();
-     update_display(next_displayed, 1);
-     if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-     else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -259,18 +226,10 @@ void loop()
 //    Serial.println("Updating 22-Fill");
     twentytwo_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_ptr, twentytwo_URL, 0); // 0 indicated outbound, 1 indicates inbound
-    delay(400);
+    delay(50);
     twentytwo_ptr->attempt_connect = 0;
   }
-  else if (millis() - twentytwo_ptr->last_refreshed_out > refresh_interval) {
-    // recorded times
-   if (strlen(twentytwo_ptr->route) > 1) {
-     twentytwo_ptr->last_refreshed_out = millis();
-     update_display(next_displayed, 0);
-     if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-     else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -284,18 +243,10 @@ void loop()
     seventyone_ptr->attempt_connect = 1;
 //    Serial.println(seventyone_URL);
     connect_to_update(seventyone_ptr, seventyone_in_URL, 1);
-    delay(400);
+    delay(50);
     seventyone_ptr->attempt_connect = 0;
   }
-  else if (millis() - seventyone_ptr->last_refreshed_in > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(seventyone_ptr->route) > 1) {
-     seventyone_ptr->last_refreshed_in = millis();
-     update_display(next_displayed, 1);
-     if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-     else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();
@@ -308,18 +259,10 @@ void loop()
     seventyone_ptr->attempt_connect = 1;
 //    Serial.println(seventyone_URL);
     connect_to_update(seventyone_ptr, seventyone_out_URL, 0);
-    delay(400);
+    delay(50);
     seventyone_ptr->attempt_connect = 0;
   }
-  else if (millis() - seventyone_ptr->last_refreshed_out > refresh_interval) {
-    // reprint previously recorded times
-   if (strlen(seventyone_ptr->route) > 1) {
-     seventyone_ptr->last_refreshed_out = millis();
-     update_display(next_displayed, 0);
-     if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-     else next_displayed = 0;
-    }
-  }
+
   if (!client.connected()) {
     client.flush();
     client.stop();

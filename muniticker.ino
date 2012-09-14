@@ -12,6 +12,7 @@
 #include <Ethernet.h>
 //#include <String.h>
 #include "datamodel.h"
+#include <LiquidCrystal.h>
 
 // Max String length may have to be adjusted depending on data to be extracted
 #define MAX_STRING_LEN  220
@@ -45,7 +46,7 @@ char LT=62; // > char
 byte len;
 byte rowCounter = 0;
 
-const int request_interval = 30000;  // delay between requests, 30 seconds
+const int request_interval = 30000;  // delay between requests, 20 seconds
 const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 //long last_refreshed = 0;            // last time text was written to display
 
@@ -62,6 +63,9 @@ byte num_predictions = 0;
 byte next_displayed = 0;
 long last_display_refresh;
 boolean display_direction = true;
+
+//setup display with pin definitions
+LiquidCrystal lcd(2, 3, 5, 6, 7, 8);
 
 EthernetClient client;
 
@@ -86,6 +90,9 @@ void setup() {
   seventyone_ptr->last_refreshed_out = 0; 
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
   last_display_refresh = millis();
+  lcd.begin(16, 2);
+  lcd.clear();
+  lcd.print("Initializing... ");
 }
 
 void loop()
@@ -281,26 +288,34 @@ void update_display(int _next_displayed, boolean _dir) {
 // Serial.print("updating display, direction out: "); Serial.println(this_route->route_direction_out);
  if ((String(this_route->route_direction_in) == "Inbound") && _dir) {
    if (strlen(this_route->route) > 12) this_route->route[12] = '\0';
+   lcd.clear();
    Serial.println("");
    Serial.print(this_route->route);Serial.println(" In  ");
+   lcd.print(this_route->route); lcd.print(" In  ");
+   lcd.setCursor(0,1);
    for (byte i=0; i<3;i++) {
       for (byte j=0;j<2;j++) {
         Serial.print(this_route->prediction_time_in[i][j]);
+        if (this_route->prediction_time_in[i][j] != '\0') lcd.print(this_route->prediction_time_in[i][j]);
       } // end j for loop
-      if (i<2)Serial.print(", ");
-      else Serial.println(" ");
+      if (i<2) { Serial.print(", "); lcd.print(", "); }
+      else { Serial.println(" "); lcd.print(" "); }
     } // end i for loop
  } 
  if ((String(this_route->route_direction_out) == "Outbound") && !_dir) {
    if (strlen(this_route->route) > 12) this_route->route[12] = '\0';
+   lcd.clear();
    Serial.println("");
    Serial.print(this_route->route);Serial.println(" Out ");
+   lcd.print(this_route->route); lcd.print(" Out ");
+   lcd.setCursor(0,1);
    for (byte i=0; i<3;i++) {
     for (byte j=0;j<2;j++) {
       Serial.print(this_route->prediction_time_out[i][j]);
+      if (this_route->prediction_time_out[i][j] != '\0') lcd.print(this_route->prediction_time_out[i][j]);
     } // end j for loop
-    if (i<2)Serial.print(", ");
-    else Serial.println(" ");
+    if (i<2) { Serial.print(", "); lcd.print(", "); }
+    else { Serial.println(" "); lcd.print(" "); }
   } // end i for loop
   }
   Serial.println("");
@@ -312,7 +327,7 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
   Serial.println("");
     // if you get a connection, report back via serial:
   if (client.connect(nextmuni, 80)) {
-    if (strlen(_route->route) > 7) _route->route[7] = '\0';
+    if (strlen(_route->route) > 12) _route->route[12] = '\0';
     Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
     Serial.println("Connected");
     delay(100);

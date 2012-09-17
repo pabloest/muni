@@ -46,7 +46,7 @@ char LT=62; // > char
 byte len;
 byte rowCounter = 0;
 
-const int request_interval = 30000;  // delay between requests, 20 seconds
+const long request_interval = 45000;  // delay between requests, 20 seconds
 const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 //long last_refreshed = 0;            // last time text was written to display
 

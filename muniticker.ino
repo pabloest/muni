@@ -70,6 +70,10 @@ LiquidCrystal lcd(2, 3, 5, 6, 7, 8);
 EthernetClient client;
 
 void setup() {
+  lcd.begin(16, 2);
+  delay(50);
+  lcd.clear();
+  lcd.print("Initializing... ");
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
   Serial.begin(115200);
   delay(800); // give the Ethernet shield a second to initialize
@@ -90,9 +94,6 @@ void setup() {
   seventyone_ptr->last_refreshed_out = 0; 
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
   last_display_refresh = millis();
-  lcd.begin(16, 2);
-  lcd.clear();
-  lcd.print("Initializing... ");
 }
 
 void loop()

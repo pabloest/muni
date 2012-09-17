@@ -47,7 +47,7 @@ byte len;
 byte rowCounter = 0;
 
 const long request_interval = 45000;  // delay between requests, 20 seconds
-const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
+const int refresh_interval = 3500;  // delay between screen refreshes, 3.5 seconds
 //long last_refreshed = 0;            // last time text was written to display
 
 prediction N, F, J, K, L, M, six, twentytwo, seventyone;
@@ -299,7 +299,7 @@ void update_display(int _next_displayed, boolean _dir) {
         Serial.print(this_route->prediction_time_in[i][j]);
         if (this_route->prediction_time_in[i][j] != '\0') lcd.print(this_route->prediction_time_in[i][j]);
       } // end j for loop
-      if (i<2) { Serial.print(", "); lcd.print(", "); }
+      if (i<2 && (this_route->prediction_time_in[i+1] != " ")) { Serial.print(", "); lcd.print(", "); /* Serial.print(" size of next one is: ");Serial.print(sizeof(this_route->prediction_time_in[i+1])); Serial.print(" and it's: "); Serial.print(this_route->prediction_time_in[i+1]); Serial.println("|"); */ }
       else { Serial.println(" "); lcd.print(" "); }
     } // end i for loop
  } 
@@ -315,7 +315,7 @@ void update_display(int _next_displayed, boolean _dir) {
       Serial.print(this_route->prediction_time_out[i][j]);
       if (this_route->prediction_time_out[i][j] != '\0') lcd.print(this_route->prediction_time_out[i][j]);
     } // end j for loop
-    if (i<2) { Serial.print(", "); lcd.print(", "); }
+    if (i<2 && (this_route->prediction_time_out[i+1] != " ")) { Serial.print(", "); lcd.print(", "); }
     else { Serial.println(" "); lcd.print(" "); }
   } // end i for loop
   }

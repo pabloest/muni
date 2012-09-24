@@ -50,6 +50,9 @@ const long request_interval = 45000;  // delay between requests, 20 seconds
 const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 //long last_refreshed = 0;            // last time text was written to display
 
+/* Timer2 reload value, globally available */  
+unsigned int tcnt2; 
+
 prediction N, F, J, K, L, M, six, twentytwo, seventyone;
 prediction* F_ptr = &F; prediction* J_ptr = &J; prediction* K_ptr = &K;
 prediction* L_ptr = &L; prediction* M_ptr = &M; prediction* N_ptr = &N;
@@ -70,13 +73,32 @@ LiquidCrystal lcd(2, 3, 5, 6, 7, 8);
 EthernetClient client;
 
 void setup() {
+  noInterrupts();
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
   lcd.begin(16, 2);
   delay(50);
   lcd.clear();
   lcd.print("Initializing... ");
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
   Serial.begin(115200);
-  delay(800); // give the Ethernet shield a second to initialize
+  delay(10);
+  OCR1A =  46875;
+  TCCR1B |= ((1<<WGM12) | (1<<CS12) | (1<<CS10)); 
+  TIMSK1 |= (1<<OCIE1A);  // enable Compare Match A interrupt enable
+//  TIMSK1 &= ~(1<<TOIE1); // disable the timer overflow interrupt while configuring
+//  TCCR1A &= ~((1<<WGM11) | (1<<WGM10));
+  
+//  TCCR1B &= ~((1<<WGM13) | (1<CS11)); // configure timer1 in output compare mode  (CTC)
+  
+  // configure the prescaler to CPU clock divided by 1024
+  // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
+  // (desired period = 3 sec) / 64us = 46,875  
+   
+  interrupts();
+  
+  delay(100); // give the Ethernet shield a second to initialize
   N_ptr->attempt_connect = 1;
   N_ptr->last_refreshed_in = 0;
   N_ptr->last_refreshed_out = 0;
@@ -470,6 +492,11 @@ void clearStr (char* str) {
 //Function to add a char to a String and check its length
 void addChar (char ch, char* str) {
       str[strlen(str)] = ch;
+}
+
+ISR(TIMER1_COMPA_vect) {
+  Serial.println("");
+  Serial.println("ISR");
 }
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

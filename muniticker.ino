@@ -46,7 +46,7 @@ char LT=62; // > char
 byte len;
 byte rowCounter = 0;
 
-const long request_interval = 45000;  // delay between requests, 20 seconds
+const long request_interval = 60000;  // delay between requests, milliseconds
 const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 //long last_refreshed = 0;            // last time text was written to display
 
@@ -126,15 +126,15 @@ void loop()
 //Serial.print("mem free 1: ");Serial.println(freeRam());
 
 // update the display to start
-if (millis() - last_display_refresh > refresh_interval) {
-  Serial.println("");Serial.println("refreshing...");Serial.println("");
-  if (display_direction) update_display(next_displayed, 1);
-  else update_display(next_displayed, 0);
-  display_direction = !display_direction;
-  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-  else next_displayed = 0;
-  last_display_refresh = millis();
-}
+//if (millis() - last_display_refresh > refresh_interval) {
+//  Serial.println("");Serial.println("refreshing...");Serial.println("");
+//  if (display_direction) update_display(next_displayed, 1);
+//  else update_display(next_displayed, 0);
+//  display_direction = !display_direction;
+//  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+//  else next_displayed = 0;
+//  last_display_refresh = millis();
+//}
 
 /* ////// N-Judah \\\\\\\ */
   if (millis() - N_ptr->last_attempt_in > request_interval) {
@@ -321,7 +321,7 @@ void update_display(int _next_displayed, boolean _dir) {
         Serial.print(this_route->prediction_time_in[i][j]);
         if (this_route->prediction_time_in[i][j] != '\0') lcd.print(this_route->prediction_time_in[i][j]);
       } // end j for loop
-      if (i<2) { Serial.print(", "); lcd.print(", "); }
+      if ((i<2) && (this_route->prediction_time_in[i+1][0] != '\0')) { Serial.print(", "); lcd.print(", "); }
       else { Serial.println(" "); lcd.print(" "); }
     } // end i for loop
  } 
@@ -337,7 +337,7 @@ void update_display(int _next_displayed, boolean _dir) {
       Serial.print(this_route->prediction_time_out[i][j]);
       if (this_route->prediction_time_out[i][j] != '\0') lcd.print(this_route->prediction_time_out[i][j]);
     } // end j for loop
-    if (i<2) { Serial.print(", "); lcd.print(", "); }
+    if ((i<2) && (this_route->prediction_time_out[i+1][0] != '\0')){ Serial.print(", "); lcd.print(", "); }
     else { Serial.println(" "); lcd.print(" "); }
   } // end i for loop
   }
@@ -495,8 +495,11 @@ void addChar (char ch, char* str) {
 }
 
 ISR(TIMER1_COMPA_vect) {
-  Serial.println("");
-  Serial.println("ISR");
+  if (display_direction) update_display(next_displayed, 1);
+  else update_display(next_displayed, 0);
+  display_direction = !display_direction;
+  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+  else next_displayed = 0;
 }
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

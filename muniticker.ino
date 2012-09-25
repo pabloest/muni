@@ -350,6 +350,10 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
   Serial.println("");
     // if you get a connection, report back via serial:
   if (client.connect(nextmuni, 80)) {
+//    for (int j=0; j<2; j++) {
+//      _route->prediction_time_in[num_predictions][j] = '\0';
+//      _route->prediction_time_out[num_predictions][j] = '\0';
+//    }
     if (strlen(_route->route) > 12) _route->route[12] = '\0';
     Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
     Serial.println("Connected");
@@ -433,18 +437,19 @@ void extractRoute(char * _tmpStr, prediction* _route) {
 }
 
 void extractTime(char * _tmpStr, prediction* _route, boolean _dir) {
+//  Serial.print("line: "); Serial.println(_tmpStr);
   if (num_predictions < 3) {
     const char * predictionValueIndexStart;
     char * predictionValueIndexEnd;
     byte string_length_pred;
     char mins[3];
     predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
-    predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");\
+    predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
     string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
   //  Serial.print("time length: ");Serial.println(string_length_pred);
     memcpy(mins, predictionValueIndexStart+9, string_length_pred);
     mins[string_length_pred] = '\0';
-//    Serial.print("mins: "); Serial.print(mins);Serial.println("|");
+    Serial.print("mins: "); Serial.print(mins);Serial.println("|");
     if (_dir) memcpy(_route->prediction_time_in[num_predictions], mins, string_length_pred);
     else memcpy(_route->prediction_time_out[num_predictions], mins, string_length_pred);
     num_predictions++;
@@ -496,10 +501,14 @@ void addChar (char ch, char* str) {
 
 ISR(TIMER1_COMPA_vect) {
   if (display_direction) update_display(next_displayed, 1);
-  else update_display(next_displayed, 0);
+  else {
+    update_display(next_displayed, 0);
+    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+    else next_displayed = 0;
+  }
   display_direction = !display_direction;
-  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-  else next_displayed = 0;
+//  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+//  else next_displayed = 0;
 }
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

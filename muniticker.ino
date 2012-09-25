@@ -302,13 +302,9 @@ void loop()
 }
 
 void update_display(int _next_displayed, boolean _dir) {
-// prediction* avail_routes[] = { N_ptr, J_ptr, twentytwo_ptr };
  byte line_limit = 16;
  byte row_limit = 2;
  prediction* this_route = avail_routes[_next_displayed];
-// Serial.print("for this route "); Serial.print(_next_displayed); Serial.print(": "); Serial.println(this_route->route);
-// Serial.print("updating display, direction in: "); Serial.println(this_route->route_direction_in);
-// Serial.print("updating display, direction out: "); Serial.println(this_route->route_direction_out);
  if ((String(this_route->route_direction_in) == "Inbound") && _dir) {
    if (strlen(this_route->route) > 12) this_route->route[12] = '\0';
    lcd.clear();
@@ -350,10 +346,21 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
   Serial.println("");
     // if you get a connection, report back via serial:
   if (client.connect(nextmuni, 80)) {
-//    for (int j=0; j<2; j++) {
-//      _route->prediction_time_in[num_predictions][j] = '\0';
-//      _route->prediction_time_out[num_predictions][j] = '\0';
-//    }
+    // first clear stale data for either inbound or outbound
+    if (_dir) {
+      for (int i=0; i<3; i++) {
+        for (int j=0; j<2; j++) {
+          _route->prediction_time_in[i][j] = '\0';
+        }
+      }
+    }
+    else {
+      for (int i=0; i<3; i++) {
+        for (int j=0; j<2; j++) {
+          _route->prediction_time_out[i][j] = '\0';
+        }
+      }
+    }
     if (strlen(_route->route) > 12) _route->route[12] = '\0';
     Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
     Serial.println("Connected");
@@ -402,15 +409,12 @@ void serialEvent(prediction* _route, boolean _dir) {
 //    Serial.print("temp line: "); Serial.print(tmpStr); Serial.println("|");
     // take action
     if (strspn(tmpStr_ptr, "<predictions") == 12) {
-//      Serial.println("this is a prediction category");
       extractRoute(tmpStr, _route);
     }
     else if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
-//      Serial.println("this is a prediction time");
       extractTime(tmpStr, _route, _dir);
     }
     else if (strspn(tmpStr_ptr, "  <direction title=") == 19) {
-//      Serial.println("this is a route title");
       extractDir(tmpStr, _route);
     }
     // clear the string for the next line
@@ -429,15 +433,12 @@ void extractRoute(char * _tmpStr, prediction* _route) {
   RouteTitleIndexStart = strstr(_tmpStr, "routeTitle="); //This gives the name of the MUNI line
   RouteTitleIndexEnd = strstr(_tmpStr, "routeTag="); //routeTag is the next tag after RouteTitle
   string_length_route = (RouteTitleIndexEnd - 2) - (RouteTitleIndexStart+12);
-//  Serial.print("route length: "); Serial.println(string_length_route);
   memcpy(route, RouteTitleIndexStart+12, string_length_route);
   route[string_length_route] = '\0';
-//  Serial.print("route: "); Serial.print(route);Serial.println("|");
   memcpy(_route->route, route, 20);
 }
 
 void extractTime(char * _tmpStr, prediction* _route, boolean _dir) {
-//  Serial.print("line: "); Serial.println(_tmpStr);
   if (num_predictions < 3) {
     const char * predictionValueIndexStart;
     char * predictionValueIndexEnd;
@@ -446,10 +447,8 @@ void extractTime(char * _tmpStr, prediction* _route, boolean _dir) {
     predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
     predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
     string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
-  //  Serial.print("time length: ");Serial.println(string_length_pred);
     memcpy(mins, predictionValueIndexStart+9, string_length_pred);
     mins[string_length_pred] = '\0';
-    Serial.print("mins: "); Serial.print(mins);Serial.println("|");
     if (_dir) memcpy(_route->prediction_time_in[num_predictions], mins, string_length_pred);
     else memcpy(_route->prediction_time_out[num_predictions], mins, string_length_pred);
     num_predictions++;
@@ -464,13 +463,10 @@ void extractDir(char * _tmpStr, prediction* _route) {
   directionTitleIndexStart = strstr(tmpStr_ptr, "title=");
   directionTitleIndexEnd = strstr(tmpStr_ptr, "to ");
   string_length_dir = (directionTitleIndexEnd - 2) - (directionTitleIndexStart + 6);
-//  Serial.print("direction length: ");Serial.println(string_length_dir);
   memcpy(dir, directionTitleIndexStart+7, string_length_dir);
   dir[string_length_dir] = '\0';
-//  Serial.print("dir extracted: "); Serial.println(dir);
   if (String(dir) == "Inbound") memcpy(_route->route_direction_in, dir, 8);
   else memcpy(_route->route_direction_out, dir, 8);
-//  Serial.print("direction: "); Serial.print(dir);Serial.println("|");
 }
 
 int freeRam () {
@@ -481,7 +477,6 @@ int freeRam () {
 
 String URL_constructor(int _stop_ID, char _route[2]) {
   String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
-//  String suffix_URL = " HTTP/1.0";
   String _URL = base_URL + _route + "&s=" + _stop_ID + " HTTP/1.0";
   return _URL;
 }

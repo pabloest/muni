@@ -84,21 +84,23 @@ void setup() {
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
   Serial.begin(115200);
   delay(10);
+  // configure the prescaler to CPU clock divided by 1024
+  // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
+  // (desired period = 3 sec) / 64us = 46,875  
   OCR1A =  46875;
   TCCR1B |= ((1<<WGM12) | (1<<CS12) | (1<<CS10)); 
   TIMSK1 |= (1<<OCIE1A);  // enable Compare Match A interrupt enable
 //  TIMSK1 &= ~(1<<TOIE1); // disable the timer overflow interrupt while configuring
 //  TCCR1A &= ~((1<<WGM11) | (1<<WGM10));
-  
 //  TCCR1B &= ~((1<<WGM13) | (1<CS11)); // configure timer1 in output compare mode  (CTC)
   
-  // configure the prescaler to CPU clock divided by 1024
-  // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
-  // (desired period = 3 sec) / 64us = 46,875  
-   
+  DDRD &= ~(1<<DDD2); // set PD2 to input
+  PORTD |= (1<<PORTD2); // set PD2 to high 
+  EIMSK |= (1<<INT0);
+  EICRA |= ((1<<ISC00) | (1<<ISC01)); // enable external interrupt 0 with falling edge interrupt
+    
   interrupts();
-  
-  delay(100); // give the Ethernet shield a second to initialize
+  delay(100); // give the Ethernet shield a moment to initialize
   N_ptr->attempt_connect = 1;
   N_ptr->last_refreshed_in = 0;
   N_ptr->last_refreshed_out = 0;
@@ -400,7 +402,7 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
 
 
 ////////////////////////////
-// Process each char from web
+// Process each char from web server
 void serialEvent(prediction* _route, boolean _dir) {   
   char inChar = client.read();
 //  Serial.print(inChar);
@@ -494,7 +496,7 @@ void addChar (char ch, char* str) {
       str[strlen(str)] = ch;
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect) { // this called on every overflow interrupt, currently timed at every 3 secs
   if (display_direction) update_display(next_displayed, 1);
   else {
     update_display(next_displayed, 0);
@@ -504,6 +506,16 @@ ISR(TIMER1_COMPA_vect) {
   display_direction = !display_direction;
 //  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
 //  else next_displayed = 0;
+}
+
+ISR(SIG_INTERRUPT0) { // call same interrupt routine as above if button pushed
+  if (display_direction) update_display(next_displayed, 1);
+  else {
+    update_display(next_displayed, 0);
+    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+    else next_displayed = 0;
+  }
+  display_direction = !display_direction;
 }
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

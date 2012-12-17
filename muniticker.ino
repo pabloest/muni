@@ -57,23 +57,22 @@ prediction N, F, J, K, L, M, six, twentytwo, seventyone;
 prediction* F_ptr = &F; prediction* J_ptr = &J; prediction* K_ptr = &K;
 prediction* L_ptr = &L; prediction* M_ptr = &M; prediction* N_ptr = &N;
 prediction* six_ptr = &six; prediction* twentytwo_ptr = &twentytwo; prediction* seventyone_ptr = &seventyone;
-//prediction* avail_routes[] = {N_ptr, J_ptr, twentytwo_ptr, seventyone_ptr};
 prediction* avail_routes[] = {N_ptr, J_ptr, six_ptr, twentytwo_ptr, seventyone_ptr};
 int num_avail_routes = 5;
 
 byte num_predictions = 0;
 //int attempt_connect = 1;
-byte next_displayed = 0;
+volatile byte next_displayed = 0;
 long last_display_refresh;
-boolean display_direction = true;
+volatile boolean display_direction = true;
 
 //setup display with pin definitions
-LiquidCrystal lcd(2, 3, 5, 6, 7, 8);
+LiquidCrystal lcd(3, 9, 5, 6, 7, 8);
 
 EthernetClient client;
 
 void setup() {
-  noInterrupts();
+//  noInterrupts();
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
@@ -93,13 +92,18 @@ void setup() {
 //  TIMSK1 &= ~(1<<TOIE1); // disable the timer overflow interrupt while configuring
 //  TCCR1A &= ~((1<<WGM11) | (1<<WGM10));
 //  TCCR1B &= ~((1<<WGM13) | (1<CS11)); // configure timer1 in output compare mode  (CTC)
-  
-  DDRD &= ~(1<<DDD2); // set PD2 to input
-  PORTD |= (1<<PORTD2); // set PD2 to high 
-  EIMSK |= (1<<INT0);
-  EICRA |= ((1<<ISC00) | (1<<ISC01)); // enable external interrupt 0 with falling edge interrupt
+//  
+//  DDRD &= ~(1<<DDD2); // set PD2 to input
+//  PORTD |= (1<<PORTD2); // set PD2 to high 
+//  pinMode(2, INPUT);
+//  digitalWrite(2, HIGH);
+//  interrupts();
+//  EIMSK |= (1<<INT0);
+//  EICRA |= ((1<<ISC01)); // enable external interrupt 0 with falling edge interrupt
+
+  attachInterrupt(0, pin2ISR, FALLING);
     
-  interrupts();
+//  interrupts();
   delay(100); // give the Ethernet shield a moment to initialize
   N_ptr->attempt_connect = 1;
   N_ptr->last_refreshed_in = 0;
@@ -125,37 +129,14 @@ void loop()
 // find time of last update for the route, if needed, re-connect to the URL for the route, extraction some number of predictions
 // store predictions and timestamp of update into memory, search for any special messages, move to the next route
 
-//Serial.print("mem free 1: ");Serial.println(freeRam());
-
-// update the display to start
-//if (millis() - last_display_refresh > refresh_interval) {
-//  Serial.println("");Serial.println("refreshing...");Serial.println("");
-//  if (display_direction) update_display(next_displayed, 1);
-//  else update_display(next_displayed, 0);
-//  display_direction = !display_direction;
-//  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-//  else next_displayed = 0;
-//  last_display_refresh = millis();
-//}
-
 /* ////// N-Judah \\\\\\\ */
   if (millis() - N_ptr->last_attempt_in > request_interval) {
     String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
     N_ptr->attempt_connect = 1;
     connect_to_update(N_ptr, N_in_URL, 1);
-    delay(50);
+    delay(10);
     N_ptr->attempt_connect = 0;
   }
-
-//  else if (millis() - N_ptr->last_refreshed_in > refresh_interval) {
-//    // reprint previously recorded times
-//    if (strlen(N_ptr->route) > 1) {
-//      N_ptr->last_refreshed_in = millis();
-//      update_display(next_displayed, 1);
-//      if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-//      else next_displayed = 0;
-//    }
-//  }
 
   if (!client.connected()) {
     client.flush();
@@ -167,7 +148,7 @@ void loop()
     String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
     N_ptr->attempt_connect = 1;
     connect_to_update(N_ptr, N_out_URL, 0);
-    delay(400);
+    delay(50);
     N_ptr->attempt_connect = 0;
   }
 
@@ -179,10 +160,9 @@ void loop()
 /* ////// J-Church \\\\\\\ */
   if (millis() - J_ptr->last_attempt_in > request_interval) {
     String J_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
-    Serial.println("Updating J-Church");
     J_ptr->attempt_connect = 1;
     connect_to_update(J_ptr, J_URL, 1);
-    delay(400);
+    delay(50);
     J_ptr->attempt_connect = 0;
   }
 
@@ -194,7 +174,6 @@ void loop()
 /* ////// J-Church \\\\\\\ */
   if (millis() - J_ptr->last_attempt_out > request_interval) {
     String J_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
-//    Serial.println("Updating J-Church");
     J_ptr->attempt_connect = 1;
     connect_to_update(J_ptr, J_URL, 0);
     delay(50);
@@ -209,7 +188,6 @@ void loop()
 /* ////// 6-Parnassus \\\\\\\ */
   if (millis() - six_ptr->last_attempt_in > request_interval) {
     String six_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
-//    Serial.println("Updating 6-Parnassus");
     six_ptr->attempt_connect = 1;
     connect_to_update(six_ptr, six_URL, 1);
     delay(50);
@@ -224,7 +202,6 @@ void loop()
 /* ////// 6-Parnassus \\\\\\\ */
   if (millis() - six_ptr->last_attempt_out > request_interval) {
     String six_URL = URL_constructor(4952, "6"); // 6-Parnassus, outbound from Haight and Fillmore
-//    Serial.println("Updating 6-Parnassus");
     six_ptr->attempt_connect = 1;
     connect_to_update(six_ptr, six_URL, 0);
     delay(50);
@@ -240,7 +217,6 @@ void loop()
 ///* ////// 22-Fillmore \\\\\\\ */
   if (millis() - twentytwo_ptr->last_attempt_in > request_interval) {
     String twentytwo_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
-//    Serial.println("Updating 22-Fill");
     twentytwo_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_ptr, twentytwo_URL, 1);
     delay(50);
@@ -255,7 +231,6 @@ void loop()
 ///* ////// 22-Fillmore \\\\\\\ */
   if (millis() - twentytwo_ptr->last_attempt_out > request_interval) {
     String twentytwo_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
-//    Serial.println("Updating 22-Fill");
     twentytwo_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_ptr, twentytwo_URL, 0); // 0 indicated outbound, 1 indicates inbound
     delay(50);
@@ -271,9 +246,7 @@ void loop()
 ///* ////// 71-Haight \\\\\\\ */
   if (millis() - seventyone_ptr->last_attempt_in > request_interval) {
     String seventyone_in_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
-//    Serial.println("Updating 71-Haig in");
     seventyone_ptr->attempt_connect = 1;
-//    Serial.println(seventyone_URL);
     connect_to_update(seventyone_ptr, seventyone_in_URL, 1);
     delay(50);
     seventyone_ptr->attempt_connect = 0;
@@ -287,9 +260,7 @@ void loop()
 /* ////// 71-Haight \\\\\\\ */
   if (millis() - seventyone_ptr->last_attempt_out > request_interval) {
     String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
-//    Serial.println("Updating 71-Haig out");
     seventyone_ptr->attempt_connect = 1;
-//    Serial.println(seventyone_URL);
     connect_to_update(seventyone_ptr, seventyone_out_URL, 0);
     delay(50);
     seventyone_ptr->attempt_connect = 0;
@@ -366,7 +337,7 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
     if (strlen(_route->route) > 12) _route->route[12] = '\0';
     Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
     Serial.println("Connected");
-    delay(100);
+    delay(50);
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
 
 // DNS-based request:
@@ -374,11 +345,8 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
     client.println(_URL); // needed
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.1");
     client.println("Host: webservices.nextbus.com");  // needed
-//    client.println("User-Agent: arduino");
-//    client.println("Accept: */*");
-//    client.println("Connection: close");
     client.println();
-    delay(100);
+    delay(50);
     while (client.connected()) {
       if (client.available()) {
         serialEvent(_route, _dir);
@@ -394,7 +362,6 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
     // record the last time the connection was attempted
     if (_dir) _route->last_attempt_in = millis();
     else _route->last_attempt_out = millis();
-//    Serial.println("last attempt: " + N_ptr->last_attempt);
   }  else {
     Serial.println("Update failed");
   }
@@ -408,7 +375,6 @@ void serialEvent(prediction* _route, boolean _dir) {
 //  Serial.print(inChar);
   if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //    addChar('\0', tmpStr_ptr);
-//    Serial.print("temp line: "); Serial.print(tmpStr); Serial.println("|");
     // take action
     if (strspn(tmpStr_ptr, "<predictions") == 12) {
       extractRoute(tmpStr, _route);
@@ -496,6 +462,7 @@ void addChar (char ch, char* str) {
       str[strlen(str)] = ch;
 }
 
+
 ISR(TIMER1_COMPA_vect) { // this called on every overflow interrupt, currently timed at every 3 secs
   if (display_direction) update_display(next_displayed, 1);
   else {
@@ -508,7 +475,22 @@ ISR(TIMER1_COMPA_vect) { // this called on every overflow interrupt, currently t
 //  else next_displayed = 0;
 }
 
-ISR(SIG_INTERRUPT0) { // call same interrupt routine as above if button pushed
+//ISR(EXT_INT0_vect) {
+////  noInterrupts();
+//  delayMicroseconds(5000);
+//  if (display_direction) update_display(next_displayed, 1);
+//  else {
+//    update_display(next_displayed, 0);
+//    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+//    else next_displayed = 0;
+//  }
+//  display_direction = !display_direction;
+////  interrupts();
+//}
+
+void pin2ISR(void) {
+//  noInterrupts();
+  delayMicroseconds(5000);
   if (display_direction) update_display(next_displayed, 1);
   else {
     update_display(next_displayed, 0);
@@ -516,7 +498,10 @@ ISR(SIG_INTERRUPT0) { // call same interrupt routine as above if button pushed
     else next_displayed = 0;
   }
   display_direction = !display_direction;
+//  interrupts();
 }
+
+
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //
 

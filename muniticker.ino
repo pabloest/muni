@@ -79,10 +79,11 @@ void setup() {
   lcd.begin(16, 2);
   delay(50);
   lcd.clear();
-  lcd.print("Initializing... ");
+  lcd.print("Initializing... ");  
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
   Serial.begin(115200);
   delay(10);
+  Serial.println(" ");Serial.println("Initializing...");Serial.println("");
   // configure the prescaler to CPU clock divided by 1024
   // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
   // (desired period = 3 sec) / 64us = 46,875  
@@ -120,8 +121,16 @@ void setup() {
   seventyone_ptr->attempt_connect = 1;
   seventyone_ptr->last_refreshed_in = 0;
   seventyone_ptr->last_refreshed_out = 0; 
-  Serial.println(" ");Serial.println("Initializing...");Serial.println("");
+//  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Downloading...   ");
+//  lcd.print("from MUNI API...");
+//  lcd.setCursor(0,1);
+//  lcd.print("from MUNI API...");
   last_display_refresh = millis();
+//  initial_data();
+//  N_ptr->last_attempt_in = millis() - request_interval;
+  N_ptr->last_attempt_out = millis() - request_interval;
 }
 
 void loop()
@@ -137,11 +146,7 @@ void loop()
     delay(10);
     N_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
   
 /* ////// N-Judah \\\\\\\ */
   if (millis() - N_ptr->last_attempt_out > request_interval) {
@@ -151,97 +156,68 @@ void loop()
     delay(50);
     N_ptr->attempt_connect = 0;
   }
+  clear_client();
 
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
 
 /* ////// J-Church \\\\\\\ */
   if (millis() - J_ptr->last_attempt_in > request_interval) {
-    String J_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
+    String J_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
     J_ptr->attempt_connect = 1;
-    connect_to_update(J_ptr, J_URL, 1);
+    connect_to_update(J_ptr, J_in_URL, 1);
     delay(50);
     J_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
 
 /* ////// J-Church \\\\\\\ */
   if (millis() - J_ptr->last_attempt_out > request_interval) {
-    String J_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
+    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
     J_ptr->attempt_connect = 1;
-    connect_to_update(J_ptr, J_URL, 0);
+    connect_to_update(J_ptr, J_out_URL, 0);
     delay(50);
     J_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
 
 /* ////// 6-Parnassus \\\\\\\ */
   if (millis() - six_ptr->last_attempt_in > request_interval) {
-    String six_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
+    String six_in_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
     six_ptr->attempt_connect = 1;
-    connect_to_update(six_ptr, six_URL, 1);
+    connect_to_update(six_ptr, six_in_URL, 1);
     delay(50);
     six_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
   
 /* ////// 6-Parnassus \\\\\\\ */
   if (millis() - six_ptr->last_attempt_out > request_interval) {
-    String six_URL = URL_constructor(4952, "6"); // 6-Parnassus, outbound from Haight and Fillmore
+    String six_out_URL = URL_constructor(4952, "6"); // 6-Parnassus, outbound from Haight and Fillmore
     six_ptr->attempt_connect = 1;
-    connect_to_update(six_ptr, six_URL, 0);
+    connect_to_update(six_ptr, six_out_URL, 0);
     delay(50);
     six_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }  
-
+  clear_client();
 
 ///* ////// 22-Fillmore \\\\\\\ */
   if (millis() - twentytwo_ptr->last_attempt_in > request_interval) {
-    String twentytwo_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
+    String twentytwo_in_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
     twentytwo_ptr->attempt_connect = 1;
-    connect_to_update(twentytwo_ptr, twentytwo_URL, 1);
+    connect_to_update(twentytwo_ptr, twentytwo_in_URL, 1);
     delay(50);
     twentytwo_ptr->attempt_connect = 0;
   }
+  clear_client();
 
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
-  
 ///* ////// 22-Fillmore \\\\\\\ */
   if (millis() - twentytwo_ptr->last_attempt_out > request_interval) {
-    String twentytwo_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
+    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
     twentytwo_ptr->attempt_connect = 1;
-    connect_to_update(twentytwo_ptr, twentytwo_URL, 0); // 0 indicated outbound, 1 indicates inbound
+    connect_to_update(twentytwo_ptr, twentytwo_out_URL, 0); // 0 indicated outbound, 1 indicates inbound
     delay(50);
     twentytwo_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }  
-  
+  clear_client();
   
 ///* ////// 71-Haight \\\\\\\ */
   if (millis() - seventyone_ptr->last_attempt_in > request_interval) {
@@ -251,11 +227,7 @@ void loop()
     delay(50);
     seventyone_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
 
 /* ////// 71-Haight \\\\\\\ */
   if (millis() - seventyone_ptr->last_attempt_out > request_interval) {
@@ -265,11 +237,7 @@ void loop()
     delay(50);
     seventyone_ptr->attempt_connect = 0;
   }
-
-  if (!client.connected()) {
-    client.flush();
-    client.stop();
-  }
+  clear_client();
 
 // END OF LOOP
 }
@@ -281,36 +249,36 @@ void update_display(int _next_displayed, boolean _dir) {
  if ((String(this_route->route_direction_in) == "Inbound") && _dir) {
    if (strlen(this_route->route) > 12) this_route->route[12] = '\0';
    lcd.clear();
-   Serial.println("");
-   Serial.print(this_route->route);Serial.println(" In  ");
+//   Serial.println("");
+//   Serial.print(this_route->route);Serial.println(" In  ");
    lcd.print(this_route->route); lcd.print(" In  ");
    lcd.setCursor(0,1);
    for (byte i=0; i<3;i++) {
       for (byte j=0;j<2;j++) {
-        Serial.print(this_route->prediction_time_in[i][j]);
+//        Serial.print(this_route->prediction_time_in[i][j]);
         if (this_route->prediction_time_in[i][j] != '\0') lcd.print(this_route->prediction_time_in[i][j]);
       } // end j for loop
-      if ((i<2) && (this_route->prediction_time_in[i+1][0] != '\0')) { Serial.print(", "); lcd.print(", "); }
-      else { Serial.println(" "); lcd.print(" "); }
+      if ((i<2) && (this_route->prediction_time_in[i+1][0] != '\0')) { /* Serial.print(", "); */ lcd.print(", "); }
+      else { /* Serial.println(" "); */ lcd.print(" "); }
     } // end i for loop
  } 
  if ((String(this_route->route_direction_out) == "Outbound") && !_dir) {
    if (strlen(this_route->route) > 12) this_route->route[12] = '\0';
    lcd.clear();
-   Serial.println("");
-   Serial.print(this_route->route);Serial.println(" Out ");
+//   Serial.println("");
+//   Serial.print(this_route->route);Serial.println(" Out ");
    lcd.print(this_route->route); lcd.print(" Out ");
    lcd.setCursor(0,1);
    for (byte i=0; i<3;i++) {
     for (byte j=0;j<2;j++) {
-      Serial.print(this_route->prediction_time_out[i][j]);
+//      Serial.print(this_route->prediction_time_out[i][j]);
       if (this_route->prediction_time_out[i][j] != '\0') lcd.print(this_route->prediction_time_out[i][j]);
     } // end j for loop
-    if ((i<2) && (this_route->prediction_time_out[i+1][0] != '\0')){ Serial.print(", "); lcd.print(", "); }
-    else { Serial.println(" "); lcd.print(" "); }
+    if ((i<2) && (this_route->prediction_time_out[i+1][0] != '\0')){ /* Serial.print(", "); */ lcd.print(", "); }
+    else { /* Serial.println(" "); */ lcd.print(" "); }
   } // end i for loop
   }
-  Serial.println("");
+//  Serial.println("");
 }
 
 void connect_to_update(prediction* _route, String _URL, boolean _dir) {
@@ -362,8 +330,8 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
     // record the last time the connection was attempted
     if (_dir) _route->last_attempt_in = millis();
     else _route->last_attempt_out = millis();
-  }  else {
-    Serial.println("Update failed");
+  } else {
+    Serial.print("Update failed for "); Serial.print(_URL); Serial.print(" "); Serial.println(_dir);
   }
 }
 
@@ -498,9 +466,88 @@ void pin2ISR(void) {
     else next_displayed = 0;
   }
   display_direction = !display_direction;
+  TCNT1=0;
 //  interrupts();
 }
 
+void clear_client(void) {
+  if (!client.connected()) {
+    client.flush();
+    client.stop();
+  }
+}
+
+void initial_data(void) {
+  String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
+  N_ptr->attempt_connect = 1;
+  connect_to_update(N_ptr, N_in_URL, 1);
+  delay(200);
+  N_ptr->attempt_connect = 0;
+  clear_client();
+  
+//  String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
+//  N_ptr->attempt_connect = 1;
+//  connect_to_update(N_ptr, N_out_URL, 0);
+//  delay(200);
+//  N_ptr->attempt_connect = 0;
+//  clear_client();
+//  
+//  String J_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
+//  J_ptr->attempt_connect = 1;
+//  connect_to_update(J_ptr, J_in_URL, 1);
+//  delay(200);
+//  J_ptr->attempt_connect = 0;
+//  clear_client();
+//
+//  String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
+//  J_ptr->attempt_connect = 1;
+//  connect_to_update(J_ptr, J_out_URL, 0);
+//  delay(200);
+//  J_ptr->attempt_connect = 0;
+//  clear_client();
+// 
+//  String six_in_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
+//  six_ptr->attempt_connect = 1;
+//  connect_to_update(six_ptr, six_in_URL, 1);
+//  delay(200);
+//  six_ptr->attempt_connect = 0;
+//  clear_client();
+//
+//  String six_out_URL = URL_constructor(4952, "6"); // 6-Parnassus, outbound from Haight and Fillmore
+//  six_ptr->attempt_connect = 1;
+//  connect_to_update(six_ptr, six_out_URL, 0);
+//  delay(200);
+//  six_ptr->attempt_connect = 0;
+//  clear_client();
+//
+//  String twentytwo_in_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
+//  twentytwo_ptr->attempt_connect = 1;
+//  connect_to_update(twentytwo_ptr, twentytwo_in_URL, 1);
+//  delay(200);
+//  twentytwo_ptr->attempt_connect = 0;
+//  clear_client();
+//
+//  String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
+//  twentytwo_ptr->attempt_connect = 1;
+//  connect_to_update(twentytwo_ptr, twentytwo_out_URL, 0); // 0 indicated outbound, 1 indicates inbound
+//  delay(200);
+//  twentytwo_ptr->attempt_connect = 0;
+//  clear_client();
+//
+//  String seventyone_in_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
+//  seventyone_ptr->attempt_connect = 1;
+//  connect_to_update(seventyone_ptr, seventyone_in_URL, 1);
+//  delay(200);
+//  seventyone_ptr->attempt_connect = 0;
+//  clear_client();
+// 
+//  String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
+//  seventyone_ptr->attempt_connect = 1;
+//  connect_to_update(seventyone_ptr, seventyone_out_URL, 0);
+//  delay(200);
+//  seventyone_ptr->attempt_connect = 0;
+//  clear_client();
+}
 
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

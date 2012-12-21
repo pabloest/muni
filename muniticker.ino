@@ -128,6 +128,7 @@ void setup() {
 //  lcd.setCursor(0,1);
 //  lcd.print("from MUNI API...");
   last_display_refresh = millis();
+  delay(200);
 //  initial_data();
 //  N_ptr->last_attempt_in = millis() - request_interval;
   N_ptr->last_attempt_out = millis() - request_interval;

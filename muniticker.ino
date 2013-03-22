@@ -1,4 +1,4 @@
-/*
+  /*
   Web client
  This sketch connects to a website (http://www.google.com)
  using an Arduino Wiznet Ethernet shield. 
@@ -72,6 +72,7 @@ LiquidCrystal lcd(3, 9, 5, 6, 7, 8);
 EthernetClient client;
 
 void setup() {
+  Serial.begin(115200);
 //  noInterrupts();
   TCCR1A = 0;
   TCCR1B = 0;
@@ -79,11 +80,18 @@ void setup() {
   lcd.begin(16, 2);
   delay(50);
   lcd.clear();
-  lcd.print("Initializing... ");  
+  lcd.print("Initializing... ");
+  lcd.clear();
+  lcd.print("Getting IP...   "); 
   Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
-  Serial.begin(115200);
+//  if (Ethernet.begin(mac) == 0 ) {
+//    Serial.println("No DHCP");
+//  }
+   // start the Ethernet connection:
   delay(10);
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
+  Serial.print("IP address is: ");
+  Serial.println(Ethernet.localIP());
   // configure the prescaler to CPU clock divided by 1024
   // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
   // (desired period = 3 sec) / 64us = 46,875  
@@ -460,6 +468,7 @@ ISR(TIMER1_COMPA_vect) { // this called on every overflow interrupt, currently t
 void pin2ISR(void) {
 //  noInterrupts();
   delayMicroseconds(5000);
+  Serial.println(TCNT1);
   if (display_direction) update_display(next_displayed, 1);
   else {
     update_display(next_displayed, 0);

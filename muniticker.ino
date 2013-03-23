@@ -337,6 +337,7 @@ void update_display(int _next_displayed) {
     } // end j for loop
     if ((i<2) && (this_route->prediction_time[i+1][0] != '\0')) { /* Serial.print(", "); */ lcd.print(", "); }
     else { /* Serial.println(" "); */ lcd.print(" "); }
+    if (this_route->prediction_time[0][0] == '\0') { lcd.setCursor(0,1); lcd.print("--- No data --- "); }
   } // end i for loop
 }
 

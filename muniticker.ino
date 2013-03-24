@@ -53,14 +53,14 @@ const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 /* Timer2 reload value, globally available */  
 unsigned int tcnt2; 
 
-prediction N_in, N_out, F_in, F_out, J_in, J_out, KT_in, KT_out, L_in, L_out, M_in, M_out, six_in, six_out, twentytwo_in, twentytwo_out, seventyone_in, seventyone_out;
-prediction* F_in_ptr = &F_in; prediction* F_out_ptr = &F_out; prediction* J_in_ptr = &J_in; prediction* J_out_ptr = &J_out;
-prediction* KT_in_ptr = &KT_in; prediction* KT_out_ptr = &KT_out; prediction* L_in_ptr = &L_in; prediction* L_out_ptr = &L_out; 
-prediction* M_in_ptr = &M_in; prediction* M_out_ptr = &M_out; prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
-prediction* six_in_ptr = &six_in; prediction* six_out_ptr = &six_out; prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
-prediction* seventyone_in_ptr = &seventyone_in; prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, J_in_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ six_in_ptr, twentytwo_in_ptr, seventyone_in_ptr};
-int num_avail_routes = 5;
+prediction N_in, N_out, J_in, J_out, KT_in, L_in, M_in, twentytwo_in, twentytwo_out, seventyone_out;
+prediction* J_in_ptr = &J_in; prediction* J_out_ptr = &J_out;
+prediction* KT_in_ptr = &KT_in; prediction* L_in_ptr = &L_in; 
+prediction* M_in_ptr = &M_in; prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
+prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
+prediction* seventyone_out_ptr = &seventyone_out;
+prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr};
+int num_avail_routes = 7;
 
 byte num_predictions = 0;
 //int attempt_connect = 1;
@@ -119,9 +119,15 @@ void setup() {
   N_in_ptr->attempt_connect = 1;
   N_in_ptr->last_refreshed = 0;
   N_in_ptr->route_direction = 1;
+  N_out_ptr->attempt_connect = 1;
+  N_out_ptr->last_refreshed = 0;
+  N_out_ptr->route_direction = 0;  
   J_in_ptr->attempt_connect = 1;
   J_in_ptr->last_refreshed = 0;
   J_in_ptr->route_direction = 1;
+  J_out_ptr->attempt_connect = 1;
+  J_out_ptr->last_refreshed = 0;
+  J_out_ptr->route_direction = 0;  
 //  KT_in_ptr->attempt_connect = 1;
 //  KT_in_ptr->last_refreshed = 0;
 //  L_ptr->attempt_connect = 1;
@@ -130,21 +136,27 @@ void setup() {
 //  M_ptr->attempt_connect = 1;
 //  M_ptr->last_refreshed_in = 0;
 //  M_ptr->last_refreshed_out = 0;
-  six_in_ptr->attempt_connect = 1;
-  six_in_ptr->last_refreshed = 0;
-  six_in_ptr->route_direction = 1;
+//  six_in_ptr->attempt_connect = 1;
+//  six_in_ptr->last_refreshed = 0;
+//  six_in_ptr->route_direction = 1;
   twentytwo_in_ptr->attempt_connect = 1;
   twentytwo_in_ptr->last_refreshed = 0;
   twentytwo_in_ptr->route_direction = 1;
-  seventyone_in_ptr->attempt_connect = 1;
-  seventyone_in_ptr->last_refreshed = 0;
-  seventyone_in_ptr->route_direction = 1;
+  twentytwo_out_ptr->attempt_connect = 1;
+  twentytwo_out_ptr->last_refreshed = 0;
+  twentytwo_out_ptr->route_direction = 0;  
+  seventyone_out_ptr->attempt_connect = 1;
+  seventyone_out_ptr->last_refreshed = 0;
+  seventyone_out_ptr->route_direction = 1;
 
   memcpy(N_in_ptr->route, "N-Judah Inbound ", 16);
+  memcpy(N_out_ptr->route, "N-Judah Outbound", 16);  
   memcpy(J_in_ptr->route, "J-Church Inbound", 16);
-  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
+  memcpy(J_out_ptr->route, "J-Church Out    ", 16);  
+//  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
   memcpy(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
-  memcpy(seventyone_in_ptr->route, "71-Haight-No In ", 16);
+  memcpy(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
+  memcpy(seventyone_out_ptr->route, "71-Haight-No Out", 16);
 //  lcd.print("from MUNI API...");
 //  lcd.setCursor(0,1);
 //  lcd.print("from MUNI API...");
@@ -171,14 +183,14 @@ void loop()
   clear_client();
   
 ///* ////// N-Judah outbound \\\\\\\ */
-//  if (millis() - N_ptr->last_attempt_out > request_interval) {
-//    String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
-//    N_ptr->attempt_connect = 1;
-//    connect_to_update(N_ptr, N_out_URL, 0);
-//    delay(50);
-//    N_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
+  if (millis() - N_out_ptr->last_attempt > request_interval) {
+    String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
+    N_out_ptr->attempt_connect = 1;
+    connect_to_update(N_out_ptr, N_out_URL, 0);
+    delay(50);
+    N_out_ptr->attempt_connect = 0;
+  }
+  clear_client();
 
 
 /* ////// J-Church inbound \\\\\\\ */
@@ -192,14 +204,14 @@ void loop()
   clear_client();
 
 ///* ////// J-Church outbound \\\\\\\ */
-//  if (millis() - J_in_ptr->last_attempt > request_interval) {
-//    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
-//    J_in_ptr->attempt_connect = 1;
-//    connect_to_update(J_ptr, J_out_URL, 0);
-//    delay(50);
-//    J_in_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
+  if (millis() - J_out_ptr->last_attempt > request_interval) {
+    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
+    J_out_ptr->attempt_connect = 1;
+    connect_to_update(J_out_ptr, J_out_URL, 0);
+    delay(50);
+    J_out_ptr->attempt_connect = 0;
+  }
+  clear_client();
   
 ///* ////// KT-Ingleside/Third Street \\\\\\\ */
 //  if (millis() - K_ptr->last_attempt_in > request_interval) {
@@ -262,14 +274,14 @@ void loop()
 //  clear_client();
 
 /* ////// 6-Parnassus inbound \\\\\\\ */
-  if (millis() - six_in_ptr->last_attempt > request_interval) {
-    String six_in_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
-    six_in_ptr->attempt_connect = 1;
-    connect_to_update(six_in_ptr, six_in_URL, 1);
-    delay(50);
-    six_in_ptr->attempt_connect = 0;
-  }
-  clear_client();
+//  if (millis() - six_in_ptr->last_attempt > request_interval) {
+//    String six_in_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
+//    six_in_ptr->attempt_connect = 1;
+//    connect_to_update(six_in_ptr, six_in_URL, 1);
+//    delay(50);
+//    six_in_ptr->attempt_connect = 0;
+//  }
+//  clear_client();
   
 /* ////// 6-Parnassus outbound \\\\\\\ */
 //  if (millis() - six_ptr->last_attempt_out > request_interval) {
@@ -292,34 +304,34 @@ void loop()
   clear_client();
 
 ///* ////// 22-Fillmore outbound \\\\\\\ */
-//  if (millis() - twentytwo_ptr->last_attempt_out > request_interval) {
-//    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
-//    twentytwo_ptr->attempt_connect = 1;
-//    connect_to_update(twentytwo_ptr, twentytwo_out_URL, 0); // 0 indicated outbound, 1 indicates inbound
-//    delay(50);
-//    twentytwo_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-  
-///* ////// 71-Haight inbound \\\\\\\ */
-  if (millis() - seventyone_in_ptr->last_attempt > request_interval) {
-    String seventyone_in_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
-    seventyone_in_ptr->attempt_connect = 1;
-    connect_to_update(seventyone_in_ptr, seventyone_in_URL, 1);
+  if (millis() - twentytwo_out_ptr->last_attempt > request_interval) {
+    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
+    twentytwo_out_ptr->attempt_connect = 1;
+    connect_to_update(twentytwo_out_ptr, twentytwo_out_URL, 0); // 0 indicated outbound, 1 indicates inbound
     delay(50);
-    seventyone_in_ptr->attempt_connect = 0;
+    twentytwo_out_ptr->attempt_connect = 0;
   }
   clear_client();
-
-/* ////// 71-Haight outbound \\\\\\\ */
-//  if (millis() - seventyone_ptr->last_attempt_out > request_interval) {
-//    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
-//    seventyone_ptr->attempt_connect = 1;
-//    connect_to_update(seventyone_ptr, seventyone_out_URL, 0);
+  
+///* ////// 71-Haight inbound \\\\\\\ */
+//  if (millis() - seventyone_in_ptr->last_attempt > request_interval) {
+//    String seventyone_in_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
+//    seventyone_in_ptr->attempt_connect = 1;
+//    connect_to_update(seventyone_in_ptr, seventyone_in_URL, 1);
 //    delay(50);
-//    seventyone_ptr->attempt_connect = 0;
+//    seventyone_in_ptr->attempt_connect = 0;
 //  }
 //  clear_client();
+
+/* ////// 71-Haight outbound \\\\\\\ */
+  if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
+    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
+    seventyone_out_ptr->attempt_connect = 1;
+    connect_to_update(seventyone_out_ptr, seventyone_out_URL, 0);
+    delay(50);
+    seventyone_out_ptr->attempt_connect = 0;
+  }
+  clear_client();
 
 // END OF LOOP
 }

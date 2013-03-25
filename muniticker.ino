@@ -13,10 +13,14 @@
 //#include <String.h>
 #include "datamodel.h"
 #include <LiquidCrystal.h>
+#include <avr/pgmspace.h>
 
 // Max String length may have to be adjusted depending on data to be extracted
-#define MAX_STRING_LEN  220
-#define MAX_STRING_ROWS 50
+#define MAX_STRING_LEN  200
+#define MAX_STRING_ROWS 5
+
+//char p_buffer[100];
+//#define P(str) (strcpy_P(p_buffer, PSTR(str)), p_buffer)
 
 // Enter a MAC address and IP address for your controller below.
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -29,8 +33,8 @@ byte subnet[] = { 255,255,255,0 };
 //byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
 char nextmuni[] = "webservices.nextbus.com";
 
-char tagStr[MAX_STRING_LEN] = "";
-char* dataStr = { "" };
+//char tagStr[MAX_STRING_LEN] = "";
+//char* dataStr = { "" };
 char tmpStr[MAX_STRING_LEN] = "";
 char* tmpStr_ptr = &tmpStr[0];
 char strarr[MAX_STRING_LEN][MAX_STRING_ROWS] = { "" };
@@ -59,10 +63,27 @@ prediction* KT_in_ptr = &KT_in; prediction* L_in_ptr = &L_in;
 prediction* M_in_ptr = &M_in; prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
 prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
 prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr};
+prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /*KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
 int num_avail_routes = 7;
 
-byte num_predictions = 0;
+static const char N_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0";
+static const char N_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4447 HTTP/1.0";
+static const char J_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=J&s=4006 HTTP/1.0";
+static const char J_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=J&s=7316 HTTP/1.0";
+//char KT_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=KT&s=5726 HTTP/1.0";
+////  String KT_out_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=KT&s=6998 HTTP/1.0";
+////  String L_in_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=L&s=4006 HTTP/1.0";
+////  String L_out_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=L&s=6998 HTTP/1.0";
+////  String M_in_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=M&s=5726 HTTP/1.0";
+////  String M_out_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=M&s=6998 HTTP/1.0";
+//String six_in_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=6&s=4953 HTTP/1.0";
+//String six_out_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=6&s=4952 HTTP/1.0";
+static const char twentytwo_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=22&s=4620 HTTP/1.0";
+static const char twentytwo_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=22&s=4618 HTTP/1.0";
+//String seventyone_in_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=71&s=4953 HTTP/1.0";
+static const char seventyone_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=71&s=4952 HTTP/1.0";
+
+volatile byte num_predictions = 0;
 //int attempt_connect = 1;
 volatile byte next_displayed = 0;
 long last_display_refresh;
@@ -119,17 +140,23 @@ void setup() {
   N_in_ptr->attempt_connect = 1;
   N_in_ptr->last_refreshed = 0;
   N_in_ptr->route_direction = 1;
+  
   N_out_ptr->attempt_connect = 1;
   N_out_ptr->last_refreshed = 0;
   N_out_ptr->route_direction = 0;  
+  
   J_in_ptr->attempt_connect = 1;
   J_in_ptr->last_refreshed = 0;
   J_in_ptr->route_direction = 1;
+
   J_out_ptr->attempt_connect = 1;
   J_out_ptr->last_refreshed = 0;
   J_out_ptr->route_direction = 0;  
+  
 //  KT_in_ptr->attempt_connect = 1;
 //  KT_in_ptr->last_refreshed = 0;
+//  
+
 //  L_ptr->attempt_connect = 1;
 //  L_ptr->last_refreshed_in = 0;
 //  L_ptr->last_refreshed_out = 0;
@@ -142,21 +169,23 @@ void setup() {
   twentytwo_in_ptr->attempt_connect = 1;
   twentytwo_in_ptr->last_refreshed = 0;
   twentytwo_in_ptr->route_direction = 1;
+  
   twentytwo_out_ptr->attempt_connect = 1;
   twentytwo_out_ptr->last_refreshed = 0;
-  twentytwo_out_ptr->route_direction = 0;  
+  twentytwo_out_ptr->route_direction = 0; 
+  
   seventyone_out_ptr->attempt_connect = 1;
   seventyone_out_ptr->last_refreshed = 0;
   seventyone_out_ptr->route_direction = 1;
-
-  memcpy(N_in_ptr->route, "N-Judah Inbound ", 16);
-  memcpy(N_out_ptr->route, "N-Judah Outbound", 16);  
-  memcpy(J_in_ptr->route, "J-Church Inbound", 16);
-  memcpy(J_out_ptr->route, "J-Church Out    ", 16);  
+//  N_in_ptr->route = "N-Judah Inbound ";
+  memmove(N_in_ptr->route, "N-Judah Inbound ", 16);
+  memmove(N_out_ptr->route, "N-Judah Outbound", 16);  
+  memmove(J_in_ptr->route, "J-Church Inbound", 16);
+  memmove(J_out_ptr->route, "J-Church Out    ", 16);  
 //  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
-  memcpy(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
-  memcpy(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
-  memcpy(seventyone_out_ptr->route, "71-Haight-No Out", 16);
+  memmove(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
+  memmove(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
+  memmove(seventyone_out_ptr->route, "71-Haight-No Out", 16);
 //  lcd.print("from MUNI API...");
 //  lcd.setCursor(0,1);
 //  lcd.print("from MUNI API...");
@@ -164,7 +193,7 @@ void setup() {
   delay(200);
 //  initial_data();
 //  N_ptr->last_attempt_in = millis() - request_interval;
-  N_in_ptr->last_attempt = millis() - request_interval;
+//  N_in_ptr->last_attempt = millis() - request_interval;
 }
 
 void loop()
@@ -174,7 +203,7 @@ void loop()
 
 /* ////// N-Judah inbound \\\\\\\ */
   if (millis() - N_in_ptr->last_attempt > request_interval) {
-    String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
+//    String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
     N_in_ptr->attempt_connect = 1;
     connect_to_update(N_in_ptr, N_in_URL, 1);
     delay(10);
@@ -182,9 +211,9 @@ void loop()
   }
   clear_client();
   
-///* ////// N-Judah outbound \\\\\\\ */
+/* ////// N-Judah outbound \\\\\\\ */
   if (millis() - N_out_ptr->last_attempt > request_interval) {
-    String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
+//    String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
     N_out_ptr->attempt_connect = 1;
     connect_to_update(N_out_ptr, N_out_URL, 0);
     delay(50);
@@ -195,7 +224,7 @@ void loop()
 
 /* ////// J-Church inbound \\\\\\\ */
   if (millis() - J_in_ptr->last_attempt > request_interval) {
-    String J_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
+//    String J_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
     J_in_ptr->attempt_connect = 1;
     connect_to_update(J_in_ptr, J_in_URL, 1);
     delay(50);
@@ -203,9 +232,9 @@ void loop()
   }
   clear_client();
 
-///* ////// J-Church outbound \\\\\\\ */
+/* ////// J-Church outbound \\\\\\\ */
   if (millis() - J_out_ptr->last_attempt > request_interval) {
-    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
+//    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
     J_out_ptr->attempt_connect = 1;
     connect_to_update(J_out_ptr, J_out_URL, 0);
     delay(50);
@@ -273,29 +302,9 @@ void loop()
 //  }
 //  clear_client();
 
-/* ////// 6-Parnassus inbound \\\\\\\ */
-//  if (millis() - six_in_ptr->last_attempt > request_interval) {
-//    String six_in_URL = URL_constructor(4953, "6"); // 6-Parnassus, inbound from Haight and Fillmore
-//    six_in_ptr->attempt_connect = 1;
-//    connect_to_update(six_in_ptr, six_in_URL, 1);
-//    delay(50);
-//    six_in_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-  
-/* ////// 6-Parnassus outbound \\\\\\\ */
-//  if (millis() - six_ptr->last_attempt_out > request_interval) {
-//    String six_out_URL = URL_constructor(4952, "6"); // 6-Parnassus, outbound from Haight and Fillmore
-//    six_ptr->attempt_connect = 1;
-//    connect_to_update(six_ptr, six_out_URL, 0);
-//    delay(50);
-//    six_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-
 ///* ////// 22-Fillmore inbound \\\\\\\ */
   if (millis() - twentytwo_in_ptr->last_attempt > request_interval) {
-    String twentytwo_in_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
+//    String twentytwo_in_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
     twentytwo_in_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_in_ptr, twentytwo_in_URL, 1);
     delay(50);
@@ -303,9 +312,9 @@ void loop()
   }
   clear_client();
 
-///* ////// 22-Fillmore outbound \\\\\\\ */
+/* ////// 22-Fillmore outbound \\\\\\\ */
   if (millis() - twentytwo_out_ptr->last_attempt > request_interval) {
-    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
+//    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
     twentytwo_out_ptr->attempt_connect = 1;
     connect_to_update(twentytwo_out_ptr, twentytwo_out_URL, 0); // 0 indicated outbound, 1 indicates inbound
     delay(50);
@@ -325,7 +334,7 @@ void loop()
 
 /* ////// 71-Haight outbound \\\\\\\ */
   if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
-    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
+//    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
     seventyone_out_ptr->attempt_connect = 1;
     connect_to_update(seventyone_out_ptr, seventyone_out_URL, 0);
     delay(50);
@@ -353,10 +362,11 @@ void update_display(int _next_displayed) {
   } // end i for loop
 }
 
-void connect_to_update(prediction* _route, String _URL, boolean _dir) {
+void connect_to_update(prediction* _route, const char _URL[], boolean _dir) {
   num_predictions = 0;
   byte no_char_count = 0;
   Serial.println("");
+//  Serial.println(_URL);
     // if you get a connection, report back via serial:
   if (client.connect(nextmuni, 80)) {
     // first clear stale data for either inbound or outbound
@@ -365,10 +375,9 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
       _route->prediction_time[i][j] = '\0';
     }
   }
-
-    Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
-    Serial.println("Connected");
-    delay(50);
+  Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
+  Serial.println("Connected");
+  delay(50);
 //    client.println("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0");
 
 // DNS-based request:
@@ -384,6 +393,7 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
         no_char_count = 0;
         // test it, take action
         // clear the string, get ready for the next one
+        delay(1);
       }
       delay(1);
       no_char_count++;
@@ -402,7 +412,7 @@ void connect_to_update(prediction* _route, String _URL, boolean _dir) {
 // Process each char from web server
 void serialEvent(prediction* _route, boolean _dir) {   
   char inChar = client.read();
-//  Serial.print(inChar);
+  Serial.print(inChar);
   if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
 //    addChar('\0', tmpStr_ptr);
     // take action
@@ -423,8 +433,6 @@ void serialEvent(prediction* _route, boolean _dir) {
   }
 }
 
-
-
 void extractTime(char * _tmpStr, prediction* _route, boolean _dir) {
   if (num_predictions < 3) {
     const char * predictionValueIndexStart;
@@ -434,8 +442,7 @@ void extractTime(char * _tmpStr, prediction* _route, boolean _dir) {
     predictionValueIndexStart = strstr(tmpStr_ptr, "minutes=");
     predictionValueIndexEnd = strstr(tmpStr_ptr, "isDeparture=");
     string_length_pred = (predictionValueIndexEnd - 2) - (predictionValueIndexStart + 9);
-    if (_dir) memcpy(_route->prediction_time[num_predictions], predictionValueIndexStart+9, string_length_pred);
-    else memcpy(_route->prediction_time[num_predictions], predictionValueIndexStart+9, string_length_pred);
+    memmove(_route->prediction_time[num_predictions], predictionValueIndexStart+9, string_length_pred);
     Serial.println(_route->prediction_time[num_predictions]);
 //    memcpy(mins, predictionValueIndexStart+9, string_length_pred);
 //    mins[string_length_pred] = '\0';
@@ -468,11 +475,11 @@ int freeRam () {
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
-String URL_constructor(int _stop_ID, char _route[2]) {
-  String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
-  String _URL = base_URL + _route + "&s=" + _stop_ID + " HTTP/1.0";
-  return _URL;
-}
+//String URL_constructor(int _stop_ID, char _route[2]) {
+//  String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
+//  String _URL = base_URL + _route + "&s=" + _stop_ID + " HTTP/1.0";
+//  return _URL;
+//}
 
 // Function to clear a String
 void clearStr (char* str) {
@@ -489,13 +496,11 @@ void addChar (char ch, char* str) {
 
 
 ISR(TIMER1_COMPA_vect) { // this called on every overflow interrupt, currently timed at every 3 secs
-  if (display_direction) update_display(next_displayed);
-  else {
-    update_display(next_displayed);
-    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-    else next_displayed = 0;
-  }
-  display_direction = !display_direction;
+//  if (display_direction) update_display(next_displayed);
+  update_display(next_displayed);
+  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+  else next_displayed = 0;
+//  display_direction = !display_direction;
 //  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
 //  else next_displayed = 0;
 }
@@ -517,31 +522,27 @@ void pin2ISR(void) {
 //  noInterrupts();
   delayMicroseconds(5000);
   Serial.println(TCNT1);
-  if (display_direction) update_display(next_displayed);
-  else {
-    update_display(next_displayed);
-    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-    else next_displayed = 0;
-  }
-  display_direction = !display_direction;
+  update_display(next_displayed);
+  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
+  else next_displayed = 0;
   TCNT1=0;
 //  interrupts();
 }
 
 void clear_client(void) {
   if (!client.connected()) {
-    client.flush();
+//    client.flush();
     client.stop();
   }
 }
 
 void initial_data(void) {
-  String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
-  N_in_ptr->attempt_connect = 1;
-  connect_to_update(N_in_ptr, N_in_URL, 1);
-  delay(200);
-  N_in_ptr->attempt_connect = 0;
-  clear_client();
+//  String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
+//  N_in_ptr->attempt_connect = 1;
+//  connect_to_update(N_in_ptr, N_in_URL, 1);
+//  delay(200);
+//  N_in_ptr->attempt_connect = 0;
+//  clear_client();
   
 //  String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
 //  N_ptr->attempt_connect = 1;

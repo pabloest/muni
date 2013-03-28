@@ -4,8 +4,8 @@
 typedef struct {
   char route[17];
   boolean route_direction; //true = inbound, false = outbound
-  char prediction_time[3][3]; // one prediction time, it's only inbound or outbound
-  boolean attempt_connect;
+  char prediction_time[3][3]; // one prediction time, it's only inbound or outbound, max 3 times per route
+//  boolean attempt_connect;
   long last_attempt; // one attempt time, one refresh time
   long last_refreshed;
 } prediction;

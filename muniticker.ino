@@ -53,15 +53,16 @@ const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 /* Timer2 reload value, globally available */  
 unsigned int tcnt2; 
 
-prediction N_in, N_out, J_in, J_out, KT_in, /* L_in, /* M_in, */ twentytwo_in, twentytwo_out, seventyone_out;
+prediction N_in, N_out, J_in, J_out, KT_in, L_in, M_in, twentytwo_in, twentytwo_out, seventyone_out;
 prediction* J_in_ptr = &J_in; prediction* J_out_ptr = &J_out;
 prediction* KT_in_ptr = &KT_in; 
-//prediction* L_in_ptr = &L_in; prediction* M_in_ptr = &M_in; 
+prediction* L_in_ptr = &L_in; 
+prediction* M_in_ptr = &M_in; 
 prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
 prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
 prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
-int num_avail_routes = 8;
+prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_ptr, L_in_ptr, M_in_ptr, twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
+int num_avail_routes = 10;
 
 //static const char N_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0";
 //static const char N_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4447 HTTP/1.0";
@@ -152,27 +153,28 @@ void setup() {
   KT_in_ptr->last_refreshed = 0;
   KT_in_ptr->route_direction = 1;
 
-//  L_ptr->last_refreshed_in = 0;
-//  L_ptr->last_refreshed_out = 0;
-//  M_ptr->last_refreshed_in = 0;
-//  M_ptr->last_refreshed_out = 0;
-//  six_in_ptr->last_refreshed = 0;
-//  six_in_ptr->route_direction = 1;
+  L_in_ptr->last_refreshed = 0;
+  L_in_ptr->route_direction = 1;
+
+  M_in_ptr->last_refreshed = 0;
+  M_in_ptr->route_direction = 1;
+
   twentytwo_in_ptr->last_refreshed = 0;
   twentytwo_in_ptr->route_direction = 1;
   
   twentytwo_out_ptr->last_refreshed = 0;
   twentytwo_out_ptr->route_direction = 0; 
   
-//  seventyone_out_ptr->last_refreshed = 0;
-//  seventyone_out_ptr->route_direction = 1;
+  seventyone_out_ptr->last_refreshed = 0;
+  seventyone_out_ptr->route_direction = 0;
   
   memmove(N_in_ptr->route, "N-Judah Inbound ", 16);
   memmove(N_out_ptr->route, "N-Judah Outbound", 16);  
   memmove(J_in_ptr->route, "J-Church Inbound", 16);
   memmove(J_out_ptr->route, "J-Church Out    ", 16); 
   memmove(KT_in_ptr->route, "KT-Ingl/3rd In  ", 16);
-//  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
+  memmove(L_in_ptr->route, "L-Taraval In    ", 16);
+  memmove(M_in_ptr->route, "M-Ocean View In", 16);
   memmove(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
   memmove(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
   memmove(seventyone_out_ptr->route, "71-Haight-No Out", 16);
@@ -233,46 +235,20 @@ void loop()
     clear_client();
   }
   
+/* ////// L-Taraval \\\\\\\ */
+  if (millis() - L_in_ptr->last_attempt > request_interval) {
+//    String L_in_URL = URL_constructor(5726, "L"); // J-Church, inbound from Church and Duboce
+    connect_to_update_prog(L_in_ptr, 1, 5726, "L");
+    delay(50);
+    clear_client();
+  }
   
-///* ////// L-Taraval \\\\\\\ */
-//  if (millis() - L_ptr->last_attempt_in > request_interval) {
-//    String L_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
-//    L_ptr->attempt_connect = 1;
-//    connect_to_update(L_ptr, L_in_URL, 1);
-//    delay(50);
-//    L_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-//
-///* ////// L-Taraval \\\\\\\ */
-//  if (millis() - L_ptr->last_attempt_out > request_interval) {
-//    String L_out_URL = URL_constructor(6998, "L"); // J-Church, inbound from Church and Duboce
-//    J_ptr->attempt_connect = 1;
-//    connect_to_update(L_ptr, L_out_URL, 0);
-//    delay(50);
-//    L_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-//  
-///* ////// M-Ocean View \\\\\\\ */
-//  if (millis() - M_ptr->last_attempt_in > request_interval) {
-//    String M_in_URL = URL_constructor(5726, "M"); // J-Church, inbound from Church and Duboce
-//    M_ptr->attempt_connect = 1;
-//    connect_to_update(M_ptr, M_in_URL, 1);
-//    delay(50);
-//    M_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-//
-///* ////// M-Ocean View \\\\\\\ */
-//  if (millis() - M_ptr->last_attempt_out > request_interval) {
-//    String M_out_URL = URL_constructor(6998, "M"); // J-Church, inbound from Church and Duboce
-//    M_ptr->attempt_connect = 1;
-//    connect_to_update(M_ptr, M_out_URL, 0);
-//    delay(50);
-//    M_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
+/* ////// M-Ocean View \\\\\\\ */
+  if (millis() - M_in_ptr->last_attempt > request_interval) {
+    connect_to_update_prog(M_in_ptr, 1, 5726, "M");
+    delay(50);
+    clear_client();
+  }
 
 ///* ////// 22-Fillmore inbound \\\\\\\ */
   if (millis() - twentytwo_in_ptr->last_attempt > request_interval) {
@@ -293,16 +269,6 @@ void loop()
 //    twentytwo_out_ptr->attempt_connect = 0;
     clear_client();
   }
-  
-///* ////// 71-Haight inbound \\\\\\\ */
-//  if (millis() - seventyone_in_ptr->last_attempt > request_interval) {
-//    String seventyone_in_URL = URL_constructor(4953, "71"); // 71-Haight, inbound from Haight and Fillmore
-//    seventyone_in_ptr->attempt_connect = 1;
-//    connect_to_update(seventyone_in_ptr, seventyone_in_URL, 1);
-//    delay(50);
-//    seventyone_in_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
 
 /* ////// 71-Haight outbound \\\\\\\ */
   if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
@@ -384,7 +350,8 @@ void serialEvent(prediction* _route) {
   char inChar = client.read();
   Serial.print(inChar);
   if (num_predictions < 3) {
-    if ( (inChar == 10) /* || (inChar == CR) /* || (inChar == LT) */) {
+    if ( (inChar == 10)  || (inChar == CR)  || (inChar == LT) ) {
+      Serial.println("line feed found");
       if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
         extractTime(mins_ptr);
         memmove(_route->prediction_time[num_predictions], mins_ptr, 3);

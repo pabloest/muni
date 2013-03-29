@@ -17,7 +17,7 @@
 
 
 // Max String length may have to be adjusted depending on data to be extracted
-#define MAX_STRING_LEN  200
+#define MAX_STRING_LEN  225
 #define MAX_STRING_ROWS 5
 
 //char p_buffer[100];
@@ -25,13 +25,25 @@
 
 // Enter a MAC address and IP address for your controller below.
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+
 //byte ip[] = { 192,168,1,177 };
+//// IP address for bench testing with Mac mini
 IPAddress ip(192,168,1,177);
 IPAddress myDns(8,8,8,8);
 byte gateway[] = { 192,168,1,176 }; // my macbook, sharing its internet connection
 byte subnet[] = { 255,255,255,0 };
+////
+
 //byte nextmuni[] = { 64,124,123,57 }; // nextmuni API, IP address resolved by webservices.nextbus.com
 //byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
+
+/// IP address for kitchen MX60
+//IPAddress ip(192,168,0,75);
+//IPAddress myDns(8,8,8,8);
+//byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
+//byte subnet[] = { 255,255,255,0 };
+////
+
 char nextmuni[] = "webservices.nextbus.com";
 char tmpStr[MAX_STRING_LEN] = "";
 char* tmpStr_ptr = &tmpStr[0];
@@ -61,8 +73,8 @@ prediction* M_in_ptr = &M_in;
 prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
 prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
 prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_ptr, L_in_ptr, M_in_ptr, twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
 int num_avail_routes = 10;
+prediction* avail_routes[10] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_ptr, L_in_ptr, M_in_ptr, twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
 
 //static const char N_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0";
 //static const char N_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4447 HTTP/1.0";
@@ -353,6 +365,7 @@ void serialEvent(prediction* _route) {
     if ( (inChar == 10)  || (inChar == CR)  || (inChar == LT) ) {
       Serial.println("line feed found");
       if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
+        Serial.println("matched prediction time");
         extractTime(mins_ptr);
         memmove(_route->prediction_time[num_predictions], mins_ptr, 3);
         Serial.print("prediction: "); Serial.println(_route->prediction_time[num_predictions]);

@@ -53,15 +53,15 @@ const int refresh_interval = 3000;  // delay between screen refreshes, 3 seconds
 /* Timer2 reload value, globally available */  
 unsigned int tcnt2; 
 
-prediction N_in, N_out, J_in, J_out, /* KT_in, L_in, M_in, */ twentytwo_in, twentytwo_out, seventyone_out;
+prediction N_in, N_out, J_in, J_out, KT_in, /* L_in, /* M_in, */ twentytwo_in, twentytwo_out, seventyone_out;
 prediction* J_in_ptr = &J_in; prediction* J_out_ptr = &J_out;
-//prediction* KT_in_ptr = &KT_in; 
+prediction* KT_in_ptr = &KT_in; 
 //prediction* L_in_ptr = &L_in; prediction* M_in_ptr = &M_in; 
 prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
 prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
 prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
-int num_avail_routes = 7;
+prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
+int num_avail_routes = 8;
 
 //static const char N_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0";
 //static const char N_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4447 HTTP/1.0";
@@ -149,8 +149,8 @@ void setup() {
   J_out_ptr->last_refreshed = 0;
   J_out_ptr->route_direction = 0;  
   
-//  KT_in_ptr->last_refreshed = 0;
-//  KT_in_ptr->route_direction = 1;
+  KT_in_ptr->last_refreshed = 0;
+  KT_in_ptr->route_direction = 1;
 
 //  L_ptr->last_refreshed_in = 0;
 //  L_ptr->last_refreshed_out = 0;
@@ -171,7 +171,7 @@ void setup() {
   memmove(N_out_ptr->route, "N-Judah Outbound", 16);  
   memmove(J_in_ptr->route, "J-Church Inbound", 16);
   memmove(J_out_ptr->route, "J-Church Out    ", 16); 
-//  memmove(KT_in_ptr->route, "KT-Ingl/3rd In  ", 16);
+  memmove(KT_in_ptr->route, "KT-Ingl/3rd In  ", 16);
 //  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
   memmove(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
   memmove(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
@@ -226,24 +226,13 @@ void loop()
   }
   
 /* ////// KT-Ingleside/Third Street \\\\\\\ */
-//  if (millis() - KT_in_ptr->last_attempt > request_interval) {
-////    String K_in_URL = URL_constructor(5726, "KT"); // J-Church, inbound from Church and Duboce
-//    KT_in_ptr->attempt_connect = 1;
-//    connect_to_update_prog(KT_in_ptr, 1, 5726, "KT");
-//    delay(50);
-//    KT_in_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
-//
-///* ////// KT-Ingleside/Third Street \\\\\\\ */
-//  if (millis() - K_ptr->last_attempt_out > request_interval) {
-//    String K_out_URL = URL_constructor(6998, "KT"); // J-Church, inbound from Church and Duboce
-//    K_ptr->attempt_connect = 1;
-//    connect_to_update(K_ptr, K_out_URL, 0);
-//    delay(50);
-//    K_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
+  if (millis() - KT_in_ptr->last_attempt > request_interval) {
+//    String K_in_URL = URL_constructor(5726, "KT"); // J-Church, inbound from Church and Duboce
+    connect_to_update_prog(KT_in_ptr, 1, 5726, "KT");
+    delay(50);
+    clear_client();
+  }
+  
   
 ///* ////// L-Taraval \\\\\\\ */
 //  if (millis() - L_ptr->last_attempt_in > request_interval) {

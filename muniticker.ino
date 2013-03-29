@@ -60,8 +60,8 @@ prediction* J_in_ptr = &J_in; prediction* J_out_ptr = &J_out;
 prediction* N_in_ptr = &N_in; prediction* N_out_ptr = &N_out;
 prediction* twentytwo_in_ptr = &twentytwo_in;  prediction* twentytwo_out_ptr = &twentytwo_out;
 prediction* seventyone_out_ptr = &seventyone_out;
-prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, /*seventyone_out_ptr */ };
-int num_avail_routes = 6;
+prediction* avail_routes[] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, /* KT_in_ptr, /* L_ptr, M_ptr, */ twentytwo_in_ptr, twentytwo_out_ptr, seventyone_out_ptr };
+int num_avail_routes = 7;
 
 //static const char N_in_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 HTTP/1.0";
 //static const char N_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4447 HTTP/1.0";
@@ -175,7 +175,7 @@ void setup() {
 //  memcpy(six_in_ptr->route, "6-Parnassus In  ", 16);
   memmove(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
   memmove(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
-//  memmove(seventyone_out_ptr->route, "71-Haight-No Out", 16);
+  memmove(seventyone_out_ptr->route, "71-Haight-No Out", 16);
   last_display_refresh = millis();
   delay(200);
 }
@@ -316,14 +316,14 @@ void loop()
 //  clear_client();
 
 /* ////// 71-Haight outbound \\\\\\\ */
-//  if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
-////    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
-////    seventyone_out_ptr->attempt_connect = 1;
-//    connect_to_update_prog(seventyone_out_ptr, 0, 4952, "71");
-//    delay(50);
-////    seventyone_out_ptr->attempt_connect = 0;
-//  }
-//  clear_client();
+  if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
+//    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
+//    seventyone_out_ptr->attempt_connect = 1;
+    connect_to_update_prog(seventyone_out_ptr, 0, 4952, "71");
+    delay(50);
+//    seventyone_out_ptr->attempt_connect = 0;
+    clear_client();
+  }
   
 //  Serial.print("mem: ");Serial.println(freeRam());
 

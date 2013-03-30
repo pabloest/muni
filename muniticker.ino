@@ -26,7 +26,6 @@
 // Enter a MAC address and IP address for your controller below.
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-//byte ip[] = { 192,168,1,177 };
 //// IP address for bench testing with Mac mini
 IPAddress ip(192,168,1,177);
 IPAddress myDns(8,8,8,8);
@@ -37,12 +36,12 @@ byte subnet[] = { 255,255,255,0 };
 //byte nextmuni[] = { 64,124,123,57 }; // nextmuni API, IP address resolved by webservices.nextbus.com
 //byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
 
-/// IP address for kitchen MX60
+// /* IP address for kitchen MX60 */ //
 //IPAddress ip(192,168,0,75);
 //IPAddress myDns(8,8,8,8);
 //byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
 //byte subnet[] = { 255,255,255,0 };
-////
+//
 
 char nextmuni[] = "webservices.nextbus.com";
 char tmpStr[MAX_STRING_LEN] = "";
@@ -180,16 +179,16 @@ void setup() {
   seventyone_out_ptr->last_refreshed = 0;
   seventyone_out_ptr->route_direction = 0;
   
-  memmove(N_in_ptr->route, "N-Judah Inbound ", 16);
-  memmove(N_out_ptr->route, "N-Judah Outbound", 16);  
-  memmove(J_in_ptr->route, "J-Church Inbound", 16);
-  memmove(J_out_ptr->route, "J-Church Out    ", 16); 
-  memmove(KT_in_ptr->route, "KT-Ingl/3rd In  ", 16);
-  memmove(L_in_ptr->route, "L-Taraval In    ", 16);
-  memmove(M_in_ptr->route, "M-Ocean View In", 16);
-  memmove(twentytwo_in_ptr->route, "22-Fillmore In  ", 16);
-  memmove(twentytwo_out_ptr->route, "22-Fillmore Out ", 16);
-  memmove(seventyone_out_ptr->route, "71-Haight-No Out", 16);
+  memmove(N_in_ptr->route, "N-Judah       In", 16);
+  memmove(N_out_ptr->route, "N-Judah      Out", 16);  
+  memmove(J_in_ptr->route, "J-Church      In", 16);
+  memmove(J_out_ptr->route, "J-Church     Out", 16); 
+  memmove(KT_in_ptr->route, "KT-Ingl/3rd   In", 16);
+  memmove(L_in_ptr->route, "L-Taraval     In", 16);
+  memmove(M_in_ptr->route, "M-Ocean View  In", 16);
+  memmove(twentytwo_in_ptr->route, "22-Fillmore   In", 16);
+  memmove(twentytwo_out_ptr->route, "22-Fillmore  Out", 16);
+  memmove(seventyone_out_ptr->route, "71-Haight    Out", 16);
   last_display_refresh = millis();
   delay(200);
 }
@@ -348,6 +347,7 @@ void connect_to_update_prog(prediction* _route, boolean _dir, int _stop_ID, char
       if (no_char_count > 1000) client.stop();
     }
     client.stop();
+    clearStr(tmpStr_ptr);
     delay(250);    
     _route->last_attempt = millis();
   } else {
@@ -376,7 +376,7 @@ void serialEvent(prediction* _route) {
     else if (strlen(tmpStr) < MAX_STRING_LEN)  {
       addChar(inChar, tmpStr_ptr);
     }
-    else clearStr(tmpStr_ptr);
+    else { ; }
   }
 }
 

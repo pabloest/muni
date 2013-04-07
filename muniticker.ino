@@ -17,7 +17,7 @@
 
 
 // Max String length may have to be adjusted depending on data to be extracted
-#define MAX_STRING_LEN  225
+#define MAX_STRING_LEN  250
 #define MAX_STRING_ROWS 5
 
 //char p_buffer[100];
@@ -27,20 +27,16 @@
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 //// IP address for bench testing with Mac mini
-IPAddress ip(192,168,1,177);
-IPAddress myDns(8,8,8,8);
-byte gateway[] = { 192,168,1,176 }; // my macbook, sharing its internet connection
-byte subnet[] = { 255,255,255,0 };
-////
-
-//byte nextmuni[] = { 64,124,123,57 }; // nextmuni API, IP address resolved by webservices.nextbus.com
-//byte nextmuni[] = { 192,168,1,176 }; // nextmuni API simulated by local computer MAMP
+//IPAddress ip(192,168,1,177);
+//IPAddress myDns(8,8,8,8);
+//byte gateway[] = { 192,168,1,176 }; // my macbook, sharing its internet connection
+//byte subnet[] = { 255,255,255,0 };
 
 // /* IP address for kitchen MX60 */ //
-//IPAddress ip(192,168,0,75);
-//IPAddress myDns(8,8,8,8);
-//byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
-//byte subnet[] = { 255,255,255,0 };
+IPAddress ip(192,168,0,75);
+IPAddress myDns(8,8,8,8);
+byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
+byte subnet[] = { 255,255,255,0 };
 //
 
 char nextmuni[] = "webservices.nextbus.com";
@@ -206,6 +202,7 @@ void loop()
     delay(10);
 //    N_in_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
   
 /* ////// N-Judah outbound \\\\\\\ */
@@ -216,6 +213,7 @@ void loop()
     delay(50);
 //    N_out_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
 
 /* ////// J-Church inbound \\\\\\\ */
@@ -226,6 +224,7 @@ void loop()
     delay(50);
 //    J_in_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
 
 /* ////// J-Church outbound \\\\\\\ */
@@ -236,6 +235,7 @@ void loop()
     delay(50);
 //    J_out_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
   
 /* ////// KT-Ingleside/Third Street \\\\\\\ */
@@ -244,6 +244,7 @@ void loop()
     connect_to_update_prog(KT_in_ptr, 1, 5726, "KT");
     delay(50);
     clear_client();
+    clearStr(tmpStr_ptr);
   }
   
 /* ////// L-Taraval \\\\\\\ */
@@ -252,6 +253,7 @@ void loop()
     connect_to_update_prog(L_in_ptr, 1, 5726, "L");
     delay(50);
     clear_client();
+    clearStr(tmpStr_ptr);
   }
   
 /* ////// M-Ocean View \\\\\\\ */
@@ -259,6 +261,7 @@ void loop()
     connect_to_update_prog(M_in_ptr, 1, 5726, "M");
     delay(50);
     clear_client();
+    clearStr(tmpStr_ptr);
   }
 
 ///* ////// 22-Fillmore inbound \\\\\\\ */
@@ -269,6 +272,7 @@ void loop()
     delay(50);
 //    twentytwo_in_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
 
 /* ////// 22-Fillmore outbound \\\\\\\ */
@@ -279,6 +283,7 @@ void loop()
     delay(50);
 //    twentytwo_out_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
 
 /* ////// 71-Haight outbound \\\\\\\ */
@@ -289,6 +294,7 @@ void loop()
     delay(50);
 //    seventyone_out_ptr->attempt_connect = 0;
     clear_client();
+    clearStr(tmpStr_ptr);
   }
   
 //  Serial.print("mem: ");Serial.println(freeRam());
@@ -352,6 +358,7 @@ void connect_to_update_prog(prediction* _route, boolean _dir, int _stop_ID, char
     _route->last_attempt = millis();
   } else {
     Serial.print("Update failed for "); Serial.print(_URL); Serial.print(" "); Serial.println(_dir);
+    clearStr(tmpStr_ptr);
   }
 }
 
@@ -363,7 +370,7 @@ void serialEvent(prediction* _route) {
   Serial.print(inChar);
   if (num_predictions < 3) {
     if ( (inChar == 10)  || (inChar == CR)  || (inChar == LT) ) {
-      Serial.println("line feed found");
+//      Serial.println("line feed found");
       if (strspn(tmpStr_ptr, "  <prediction epochTime") == 23) {
         Serial.println("matched prediction time");
         extractTime(mins_ptr);
@@ -428,8 +435,6 @@ void pin2ISR(void) {
   delayMicroseconds(5000);
   Serial.println(TCNT1);
   update_display(next_displayed);
-  if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-  else next_displayed = 0;
   TCNT1=0;
 //  interrupts();
 }

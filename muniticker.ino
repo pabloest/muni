@@ -1,4 +1,4 @@
-  /*
+    /*
   Web client
  This sketch connects to a website (http://www.google.com)
  using an Arduino Wiznet Ethernet shield. 
@@ -89,8 +89,6 @@ prediction* avail_routes[10] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_
 //static const char seventyone_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=71&s=4952 HTTP/1.0";
 static String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
 
-//char base_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
-
 volatile byte num_predictions = 0;
 //int attempt_connect = 1;
 volatile byte next_displayed = 0;
@@ -121,26 +119,13 @@ void setup() {
    // start the Ethernet connection:
   delay(10);
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
-//  Serial.print("IP address is: ");
-//  Serial.println(Ethernet.localIP());
+
   // configure the prescaler to CPU clock divided by 1024
   // (CPU frequency) / (prescaler value)  => 64us. // CPU = 16 MHz, prescaler = 1024
   // (desired period = 3 sec) / 64us = 46,875  
   OCR1A =  46875;
   TCCR1B |= ((1<<WGM12) | (1<<CS12) | (1<<CS10)); 
   TIMSK1 |= (1<<OCIE1A);  // enable Compare Match A interrupt enable
-//  TIMSK1 &= ~(1<<TOIE1); // disable the timer overflow interrupt while configuring
-//  TCCR1A &= ~((1<<WGM11) | (1<<WGM10));
-//  TCCR1B &= ~((1<<WGM13) | (1<CS11)); // configure timer1 in output compare mode  (CTC)
-//  
-//  DDRD &= ~(1<<DDD2); // set PD2 to input
-//  PORTD |= (1<<PORTD2); // set PD2 to high 
-//  pinMode(2, INPUT);
-//  digitalWrite(2, HIGH);
-//  interrupts();
-//  EIMSK |= (1<<INT0);
-//  EICRA |= ((1<<ISC01)); // enable external interrupt 0 with falling edge interrupt
-
   attachInterrupt(0, pin2ISR, FALLING);
     
 //  interrupts();
@@ -196,8 +181,6 @@ void loop()
 
 /* ////// N-Judah inbound \\\\\\\ */
   if (millis() - N_in_ptr->last_attempt > request_interval) {
-//    char N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
-//    N_in_ptr->attempt_connect = 1;
     connect_to_update_prog(N_in_ptr, 1, 4448, "N");
     delay(10);
 //    N_in_ptr->attempt_connect = 0;
@@ -207,40 +190,30 @@ void loop()
   
 /* ////// N-Judah outbound \\\\\\\ */
   if (millis() - N_out_ptr->last_attempt > request_interval) {
-//    String N_out_URL = URL_constructor(4447,"N"); // N-Judah, outbound from Church and Duboce
-//    N_out_ptr->attempt_connect = 1;
     connect_to_update_prog(N_out_ptr, 0, 4447, "N");
     delay(50);
-//    N_out_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
 
 /* ////// J-Church inbound \\\\\\\ */
   if (millis() - J_in_ptr->last_attempt > request_interval) {
-//    String J_in_URL = URL_constructor(4006, "J"); // J-Church, inbound from Church and Duboce
-//    J_in_ptr->attempt_connect = 1;
     connect_to_update_prog(J_in_ptr,1, 4006, "J");
     delay(50);
-//    J_in_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
 
 /* ////// J-Church outbound \\\\\\\ */
   if (millis() - J_out_ptr->last_attempt > request_interval) {
-//    String J_out_URL = URL_constructor(7316, "J"); // J-Church, inbound from Church and Duboce
-//    J_out_ptr->attempt_connect = 1;
     connect_to_update_prog(J_out_ptr, 0, 7316, "J");
     delay(50);
-//    J_out_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
   
 /* ////// KT-Ingleside/Third Street \\\\\\\ */
   if (millis() - KT_in_ptr->last_attempt > request_interval) {
-//    String K_in_URL = URL_constructor(5726, "KT"); // J-Church, inbound from Church and Duboce
     connect_to_update_prog(KT_in_ptr, 1, 5726, "KT");
     delay(50);
     clear_client();
@@ -249,7 +222,6 @@ void loop()
   
 /* ////// L-Taraval \\\\\\\ */
   if (millis() - L_in_ptr->last_attempt > request_interval) {
-//    String L_in_URL = URL_constructor(5726, "L"); // J-Church, inbound from Church and Duboce
     connect_to_update_prog(L_in_ptr, 1, 5726, "L");
     delay(50);
     clear_client();
@@ -266,33 +238,24 @@ void loop()
 
 ///* ////// 22-Fillmore inbound \\\\\\\ */
   if (millis() - twentytwo_in_ptr->last_attempt > request_interval) {
-//    String twentytwo_in_URL = URL_constructor(4620, "22"); // 22-Fillmore, inbound to marina from Haight and Fillmore
-//    twentytwo_in_ptr->attempt_connect = 1;
     connect_to_update_prog(twentytwo_in_ptr, 1, 4620, "22");
     delay(50);
-//    twentytwo_in_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
 
 /* ////// 22-Fillmore outbound \\\\\\\ */
   if (millis() - twentytwo_out_ptr->last_attempt > request_interval) {
-//    String twentytwo_out_URL = URL_constructor(4618, "22"); // 22-Fillmore, outbound to dogpatch from Haight and Fillmore
-//    twentytwo_out_ptr->attempt_connect = 1;
     connect_to_update_prog(twentytwo_out_ptr, 0, 4618, "22"); // 0 indicated outbound, 1 indicates inbound
     delay(50);
-//    twentytwo_out_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
 
 /* ////// 71-Haight outbound \\\\\\\ */
   if (millis() - seventyone_out_ptr->last_attempt > request_interval) {
-//    String seventyone_out_URL = URL_constructor(4952, "71"); // 71-Haight, outbound from Haight and Fillmore
-//    seventyone_out_ptr->attempt_connect = 1;
     connect_to_update_prog(seventyone_out_ptr, 0, 4952, "71");
     delay(50);
-//    seventyone_out_ptr->attempt_connect = 0;
     clear_client();
     clearStr(tmpStr_ptr);
   }
@@ -309,7 +272,6 @@ void update_display(int _next_displayed) {
  lcd.setCursor(0,1);
  for (byte i=0; i<3;i++) {
     for (byte j=0;j<2;j++) {
-//        Serial.print(this_route->prediction_time_in[i][j]);
       if (this_route->prediction_time[i][j] != '\0') lcd.print(this_route->prediction_time[i][j]);
     } // end j for loop
     if ((i<2) && (this_route->prediction_time[i+1][0] != '\0')) { /* Serial.print(", "); */ lcd.print(", "); }
@@ -446,20 +408,7 @@ void clear_client(void) {
 //  }
 }
 
-//ISR(EXT_INT0_vect) {
-////  noInterrupts();
-//  delayMicroseconds(5000);
-//  if (display_direction) update_display(next_displayed, 1);
-//  else {
-//    update_display(next_displayed, 0);
-//    if (next_displayed < (num_avail_routes - 1)) next_displayed++;
-//    else next_displayed = 0;
-//  }
-//  display_direction = !display_direction;
-////  interrupts();
-//}
-
-void initial_data(void) {
+//void initial_data(void) {
 //  String N_in_URL = URL_constructor(4448,"N"); // N-Judah, inbound from Church and Duboce
 //  N_in_ptr->attempt_connect = 1;
 //  connect_to_update(N_in_ptr, N_in_URL, 1);
@@ -529,7 +478,7 @@ void initial_data(void) {
 //  delay(200);
 //  seventyone_ptr->attempt_connect = 0;
 //  clear_client();
-}
+//}
 
 
 // sample URL: http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=sf-muni&r=N&s=4448 //

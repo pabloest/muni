@@ -33,11 +33,10 @@ byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 //byte subnet[] = { 255,255,255,0 };
 
 // /* IP address for kitchen MX60 */ //
-IPAddress ip(192,168,0,75);
-IPAddress myDns(8,8,8,8);
-byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
-byte subnet[] = { 255,255,255,0 };
-//
+//IPAddress ip(192,168,0,75);
+//IPAddress myDns(8,8,8,8);
+//byte gateway[] = { 192,168,0,254 }; // my macbook, sharing its internet connection
+//byte subnet[] = { 255,255,255,0 };
 
 char nextmuni[] = "webservices.nextbus.com";
 char tmpStr[MAX_STRING_LEN] = "";
@@ -87,7 +86,8 @@ prediction* avail_routes[10] = {N_in_ptr, N_out_ptr, J_in_ptr, J_out_ptr, KT_in_
 //static const char twentytwo_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=22&s=4618 HTTP/1.0";
 //String seventyone_in_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=71&s=4953 HTTP/1.0";
 //static const char seventyone_out_URL[] = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=71&s=4952 HTTP/1.0";
-static String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
+//static String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
+String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
 
 volatile byte num_predictions = 0;
 //int attempt_connect = 1;
@@ -112,11 +112,11 @@ void setup() {
   lcd.print("Initializing... ");
 //  lcd.clear();
 //  lcd.print("Getting IP...   "); 
-  Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
-//  if (Ethernet.begin(mac) == 0 ) {
-//    Serial.println("No DHCP");
-//  }
-   // start the Ethernet connection:
+//  Ethernet.begin(mac, ip, myDns, gateway, subnet); // start the Ethernet connection:
+  if (Ethernet.begin(mac) == 0 ) {
+    Serial.println("No DHCP");
+  }
+  // start the Ethernet connection:
   delay(10);
   Serial.println(" ");Serial.println("Initializing...");Serial.println("");
 
@@ -284,7 +284,7 @@ void update_display(int _next_displayed) {
 }
 
 void connect_to_update_prog(prediction* _route, boolean _dir, int _stop_ID, char _route_line[2]) {
-  String _URL = URL_constructor(_stop_ID, _route_line);
+//  String _URL = URL_constructor(_stop_ID, _route_line);
   num_predictions = 0;
   byte no_char_count = 0;
   Serial.println("");
@@ -301,7 +301,12 @@ void connect_to_update_prog(prediction* _route, boolean _dir, int _stop_ID, char
     Serial.print("Updating ");Serial.print(_route->route);Serial.println("");
     Serial.println("Connected");
     delay(50);
-    client.println(_URL); // needed
+//    client.println(_URL); // needed
+    client.print("GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=");
+    client.print(_route_line);
+    client.print("&s=");
+    client.print(_stop_ID);
+    client.println(" HTTP/1.0");
     client.println("Host: webservices.nextbus.com");  // needed
     client.println();
     delay(50);
@@ -319,7 +324,7 @@ void connect_to_update_prog(prediction* _route, boolean _dir, int _stop_ID, char
     delay(250);    
     _route->last_attempt = millis();
   } else {
-    Serial.print("Update failed for "); Serial.print(_URL); Serial.print(" "); Serial.println(_dir);
+    Serial.print("Update failed for "); Serial.print(_route_line); Serial.print(" "); Serial.println(_dir);
     clearStr(tmpStr_ptr);
   }
 }
@@ -370,6 +375,7 @@ int freeRam () {
 String URL_constructor(int _stop_ID, char _route[2]) {
 //  String base_URL = "GET /service/publicXMLFeed?command=predictions&a=sf-muni&r=";
   String _URL = base_URL + _route + "&s=" + _stop_ID + " HTTP/1.0";
+  Serial.print("URL then is: "); Serial.println(_URL);
   return _URL;
 }
 
